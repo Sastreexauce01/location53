@@ -25,7 +25,14 @@
     },
     "plugins": [
       "expo-router",
-
+      [
+        "expo-camera",
+        {
+          "cameraPermission": "Autorisez l’application à accéder à votre caméra.",
+          "microphonePermission": "Autorisez l’application à accéder à votre microphone.",
+          "recordAudioAndroid": true
+        }
+      ],
       [
         "expo-splash-screen",
         {
@@ -35,11 +42,10 @@
           "backgroundColor": "#ffffff"
         }
       ],
-     
       [
         "expo-audio",
         {
-          "microphonePermission": "Allow $(PRODUCT_NAME) to access your microphone."
+          "microphonePermission": "Autorisez l’application à accéder à votre microphone."
         }
       ],
       "expo-video"

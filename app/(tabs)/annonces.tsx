@@ -61,9 +61,9 @@ const styles = StyleSheet.create({
   },
 
   annonce: {
-    height: 220,
+    height: 185,
     width: '45%',
-    overflow: "hidden",
+    // overflow: "hidden",
   },
 
   buttonContainer: {

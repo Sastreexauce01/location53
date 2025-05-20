@@ -1,7 +1,6 @@
 import { Tabs } from "expo-router";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import AntDesign from "@expo/vector-icons/AntDesign";
-import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 
 export default function TabLayout() {
   return (
@@ -25,11 +24,12 @@ export default function TabLayout() {
         }}
       />
       <Tabs.Screen
-        name="favoris"
+        name="recherche"
         options={{
-          title: "Favoris",
+          title: "Recherche",
           tabBarIcon: ({ color, focused }) => (
-            <MaterialIcons name="favorite-border" size={24} color={color} />
+           
+            <Ionicons name="search" color={color} size={24} />
           ),
         }}
       />
@@ -37,7 +37,7 @@ export default function TabLayout() {
       <Tabs.Screen
         name="annonces"
         options={{
-          title: "Mes annonces",
+          title: "Annonces",
           tabBarIcon: ({ color, focused }) => (
             <AntDesign name="notification" size={24} color={color} />
           ),

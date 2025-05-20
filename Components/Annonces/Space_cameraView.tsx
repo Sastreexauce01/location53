@@ -159,14 +159,6 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
 
-  // emptyCircle: {
-  //   position: "absolute",
-  //   width: 80,
-  //   height: 80,
-  //   borderRadius: 50,
-  //   borderWidth: 4,
-  //   borderColor: "white",
-  // },
 
   filledCircle: {
     position: "absolute",
@@ -186,3 +178,5 @@ const styles = StyleSheet.create({
     borderRadius: 5,
   },
 });
+
+

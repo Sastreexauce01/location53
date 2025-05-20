@@ -5,15 +5,12 @@ import {
   StyleSheet,
   ImageBackground,
   Pressable,
-
-
 } from "react-native";
 
 import { Colors } from "./Colors";
-import { MaterialIcons, SimpleLineIcons } from "@expo/vector-icons";
-
+import { SimpleLineIcons } from "@expo/vector-icons";
 import Options_Modal from "./Options_Modal";
-import Loading from "@/assets/ui/Loading"
+import Loading from "@/assets/ui/Loading";
 
 type Props = {
   item: {
@@ -28,44 +25,44 @@ export const AnnonceItem = ({ item }: Props) => {
   const [isLoading, setIsLoading] = useState(true); // État de chargement
   const [modalVisible, setModalVisible] = useState(false); // État du modal
 
+  const date_creation = new Date(item.date_creation).toLocaleDateString(
+    "fr-FR",
+    {
+      day: "2-digit",
+      month: "long",
+      year: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+    }
+  );
   return (
     <View style={styles.container}>
-     
-        
-          {/* Image avec indicateur de chargement */}
-          <View style={styles.imageContainer}>
-            {isLoading && 
-             <Loading/>
-            }
-            <ImageBackground
-              source={{ uri: item.image[0] }}
-              style={styles.image}
-              resizeMode="cover"
-              onLoadEnd={() => setIsLoading(false)}
-            >
-              <View style={styles.overlay}>
-                <Text style={styles.tag}>Location</Text>
-                <Pressable onPress={() => setModalVisible(true)}>
-                  <SimpleLineIcons
-                    name="options-vertical"
-                    size={25}
-                    color={Colors.light}
-                  />
-                </Pressable>
-              </View>
-            </ImageBackground>
-          </View>
+      {/* Image avec indicateur de chargement */}
+      <View style={styles.imageContainer}>
+        {isLoading && <Loading />}
+        <ImageBackground
+          source={{ uri: item.image[0] }}
+          style={styles.image}
+          resizeMode="cover"
+          onLoadEnd={() => setIsLoading(false)}
+        >
+          <View style={styles.overlay}></View>
+        </ImageBackground>
+      </View>
 
-          {/* Informations sur l'annonce */}
-          <View style={styles.container_information}>
-            <Text style={styles.title} numberOfLines={2} ellipsizeMode='tail'>{item.nomAnnonce}</Text>
-            <View style={styles.container_date}>
-              <MaterialIcons name="update" size={10} color={Colors.primary} />
-              <Text style={styles.date}>{item.date_creation}</Text>
-            </View>
-          </View>
-      
-     
+      {/* Informations sur l'annonce */}
+      <View style={styles.container_information}>
+        <View style={styles.container_title_options}>
+          <Text style={styles.title} numberOfLines={1} ellipsizeMode="tail">
+            {item.nomAnnonce}
+          </Text>
+          <Pressable onPress={() => setModalVisible(true)}>
+            <SimpleLineIcons name="options" size={20} color={Colors.dark} />
+          </Pressable>
+        </View>
+
+        <Text style={styles.date}>{date_creation}</Text>
+      </View>
 
       {/* MODAL */}
       <Options_Modal
@@ -78,21 +75,23 @@ export const AnnonceItem = ({ item }: Props) => {
 
 const styles = StyleSheet.create({
   container: {
-    borderRadius: 10,
+    // borderRadius: 10,
     overflow: "hidden",
-    backgroundColor: "#E0DEF7",
-    height: '100%',
-    width: '100%',
+    gap: 5,
+    height: "100%",
+    width: "100%",
     justifyContent: "space-between",
   },
 
   imageContainer: {
+    borderRadius: 10,
     position: "relative",
-    height: 160,
+    height: 140,
     width: "100%",
     justifyContent: "center",
     alignItems: "center",
     backgroundColor: "#ccc",
+    overflow:'hidden'
   },
 
   loader: {
@@ -101,7 +100,7 @@ const styles = StyleSheet.create({
   },
 
   image: {
-    height: 160,
+    height: 140,
     width: "100%",
     justifyContent: "flex-start",
   },
@@ -120,30 +119,31 @@ const styles = StyleSheet.create({
     borderRadius: 5,
   },
 
-  container_information: {
-    flex:1,
-    padding: 2,
-    flexDirection: "column",
-    justifyContent:'space-between',
-    gap:0,
-    // backgroundColor:'orange'
+  container_title_options: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
   },
 
-  container_date: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 2,
+  container_information: {
+    gap:5,
+    padding: 2,
+    flexDirection: "column",
+    justifyContent: "space-between",
+
+   
   },
 
   title: {
     color: Colors.dark,
     fontSize: 15,
     fontWeight: "500",
+    width: "75%",
   },
 
   date: {
     fontSize: 10,
-    color: "black",
+    color: 'back',
     opacity: 0.5,
   },
 
@@ -169,11 +169,6 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
 
-  deleteButton: {
-    borderTopWidth: 1,
-    borderTopColor: "#ddd",
-    marginTop: 10,
-  },
 
   modalText: {
     fontSize: 16,

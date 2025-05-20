@@ -20,6 +20,7 @@ import VirtualSpace_CreateAnnonce from "@/Components/Annonces/VirtualSpace_Creat
 import Preview_CreateAnnonce from "@/Components/Annonces/Preview_CreateAnnonce";
 import { useRef, useState } from "react";
 import Final_CreateAnnonce from "@/Components/Annonces/Final_CreateAnnonce";
+import VirtualTourCreator from "@/Components/Annonces/VirtualTourCreator";
 
 
 const CreateAnnonce = () => {
@@ -74,7 +75,11 @@ const CreateAnnonce = () => {
             {step === 2 && <Photos_CreateAnnonce />}
             {step === 3 && <Lieu_CreateAnnonce />}
             {step === 4 && <OtherInfos_CreateAnnonce />}
+
             {step === 5 && <VirtualSpace_CreateAnnonce />}
+            
+            {/* {step === 5 && <VirtualTourCreator />} */}
+
             {step === 6 && <Preview_CreateAnnonce />}
           </ScrollView>
         </KeyboardAvoidingView>
