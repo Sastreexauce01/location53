@@ -12,7 +12,7 @@ import Numerisation from "./Numerisation";
 
 const VirtualSpace_CreateAnnonce = () => {
   const [isLoading, setIsloading] = useState(true);
-  const [visible, setVisible] = useState(true);
+  const [visible, setVisible] = useState(false);  // a revoir 
 
   return (
     visible ? (

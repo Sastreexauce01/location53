@@ -74,7 +74,7 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     height: 100,
     paddingTop: 50,
-    // paddingHorizontal: 15,
+    paddingHorizontal: 10,
     alignItems: "center",
     backgroundColor: "#ccc",
   },
@@ -89,15 +89,16 @@ const styles = StyleSheet.create({
   },
 
   button: {
-    backgroundColor: "#007bff",
-    padding: 12,
-    borderRadius: 8,
+    backgroundColor: Colors.primary,
+    paddingVertical: 10,
+    paddingHorizontal: 15,
+    borderRadius: 100,
     alignItems: "center",
   },
   buttonText: {
     color: "white",
-    fontWeight: "bold",
-    fontSize: 16,
+    fontWeight: "semibold",
+    fontSize: 14,
   },
 
   scenes_container: {

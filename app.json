@@ -34,6 +34,12 @@
         }
       ],
       [
+        "expo-sensors",
+        {
+          "motionPermission": "Autoriser l'application à accéder aux mouvements de votre appareil."
+        }
+      ],
+      [
         "expo-splash-screen",
         {
           "image": "./assets/images/splash-icon.png",

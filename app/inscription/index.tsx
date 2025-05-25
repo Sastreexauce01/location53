@@ -50,7 +50,7 @@ const Inscription = () => {
 
         <View style={{ alignItems: "flex-end" }}>
           <Link
-            href={"/Screen/connexion/MotsPasseOublie"}
+            href={"/connexion/MotsPasseOublie"}
             style={{ fontWeight: "500", color: Colors.primary }}
           >
             Mots de passe oublie ?
