@@ -18,4 +18,24 @@
     date_creation: string;
     id_agent: string;
   };
+
+
   
+  export type Rotation_Type = {
+  alpha: number; // orientation horizontale
+  beta: number;  // inclinaison haut-bas
+  gamma: number; // inclinaison gauche-droite
+};
+
+ export type Photo_Type = {
+  rotation: Rotation_Type;
+  uri: string;
+};
+
+
+export type Scene360_Type = {
+  id: string; // identifiant de la scène
+  photos: Photo_Type[];
+};
+
+

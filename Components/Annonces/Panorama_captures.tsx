@@ -7,6 +7,9 @@ import { Colors } from "../Colors";
 import { EventSubscription } from "expo-modules-core";
 import CircularProgress from "react-native-circular-progress-indicator";
 
+import { useAtom } from "jotai";
+import { Scene360_Atom } from "../../Data/Atoms";
+
 type props = {
   cameraVisible: boolean;
   setCameraVisible: (cameraVisible: boolean) => void;
@@ -17,30 +20,41 @@ const Panorama_captures = ({ cameraVisible, setCameraVisible }: props) => {
   const progressRef = useRef<any>(null); // ou CircularProgressHandle si typé
   const [progressValue, setProgressValue] = useState(0);
   const [rotation, setRotation] = useState({ alpha: 0, beta: 0, gamma: 0 });
-  const ref = useRef<CameraView>(null);
 
-  const tolérance_alpha = 20; // Tolérance pour l'orientation nord (±20°)
+  const ref = useRef<CameraView>(null);
+  const [scene, setScene] = useAtom(Scene360_Atom);
+
+  // const tolérance_alpha = 20; // Tolérance pour l'orientation nord (±20°)
   const tolérance_beta_min = 75;
   const tolérance_beta_max = 80;
   const tolérance_gamma = 15;
 
-    const radToDeg = (rad: number) => rad * (180 / Math.PI);
+  const radToDeg = (rad: number) => rad * (180 / Math.PI);
 
-  // Fonction pour vérifier l'orientation vers le nord
-  const isNorthOriented = (alpha: number) => {
-    // Nord = 0° ou 360°, avec tolérance
-    return alpha <= tolérance_alpha || alpha >= 360 - tolérance_alpha;
+  // condtion pou verifier l'inclinaison du telephone  beta x
+  const isBeta =
+    tolérance_beta_min <= Math.abs(rotation.beta) &&
+    Math.abs(rotation.beta) <= tolérance_beta_max;
+
+  // condition pour verifier la stabilite du telephone  gamma y
+  const isGamma = Math.abs(rotation.gamma) <= tolérance_gamma;
+
+  // condition pour verifier la direction du telephone alpha z
+  const isAlpha = () => {
+    if (scene.photos.length === 0) {
+      // Si aucune photo, on accepte la première position
+      return true;
+    }
+
+    const last_alpha = scene.photos[scene.photos.length - 1].rotation.alpha;
+    const ecart_angle = Math.abs(last_alpha - rotation.alpha);
+    if (ecart_angle <= 10) {
+      return true;
+    } else return false;
   };
 
   // condition pour verifier que le telephone est dans la bonne orientation
-  const isStraight =
-    isNorthOriented(rotation.alpha) &&
-    tolérance_beta_min <= Math.abs(rotation.beta) &&
-    Math.abs(rotation.beta) <= tolérance_beta_max &&
-    Math.abs(rotation.gamma) <= tolérance_gamma;
-
-  // conditon pour verfier que le telephone n'est pas penche
-  const isPortrait = Math.abs(rotation.gamma) <= tolérance_gamma;
+  const isStraight = isBeta && isGamma && isAlpha();
 
   useEffect(() => {
     let subscription: EventSubscription;
@@ -77,13 +91,17 @@ const Panorama_captures = ({ cameraVisible, setCameraVisible }: props) => {
       { translateY: rotation.beta * 5 }, // Mouvement basé sur l'inclinaison avant/arrière
     ],
 
-    backgroundColor: `${isPortrait ? "white" : Colors.primary}`,
+    backgroundColor: `${isGamma ? "white" : Colors.primary}`,
     top: 40,
+  };
+
+  const container_progress_style = {
+    transform: [{ translateX: -rotation.alpha * 2 }], //la procahine destination
   };
 
   // Declencher l'animation
   useEffect(() => {
-    if (isStraight ) {
+    if (isStraight) {
       setProgressValue(100); // déclenche animation vers 100
     } else if (!isStraight) {
       setProgressValue(0);
@@ -94,17 +112,20 @@ const Panorama_captures = ({ cameraVisible, setCameraVisible }: props) => {
   // Fonction pou la prise de photo
 
   const takePicture = async () => {
-    if (progressValue === 100) {
-     
-      if (ref.current) {
-        const photo = await ref.current.takePictureAsync();
-        console.log("📷 Photo prise :", photo.uri);
-      }
+    if (progressValue === 100 && ref.current) {
+      const photo = await ref.current.takePictureAsync();
 
-       alert("ok");
+      const newPhoto = {
+        rotation: rotation,
+        uri: photo.uri,
+      };
+
+      setScene((prevScene) => ({
+        ...prevScene,
+        photos: [...prevScene.photos, newPhoto],
+      }));
+      alert(scene.photos.length);
     }
-
-    
   };
 
   if (!permission) {
@@ -115,7 +136,7 @@ const Panorama_captures = ({ cameraVisible, setCameraVisible }: props) => {
     return (
       <View style={styles.container}>
         <Text style={styles.message}>
-          Nous avons besoin de la permission pour afficher la caméra{" "}
+          Nous avons besoin de la permission pour afficher la caméra
         </Text>
         <Button onPress={requestPermission} title="grant permission" />
       </View>
@@ -125,7 +146,7 @@ const Panorama_captures = ({ cameraVisible, setCameraVisible }: props) => {
   return (
     <Modal visible={cameraVisible} animationType="slide">
       <View style={styles.container}>
-        <CameraView style={styles.camera} facing={"back"}  ref={ref} />
+        <CameraView style={styles.camera} facing={"back"} ref={ref} />
 
         <Pressable
           onPress={() => setCameraVisible(!cameraVisible)}
@@ -135,18 +156,18 @@ const Panorama_captures = ({ cameraVisible, setCameraVisible }: props) => {
         </Pressable>
 
         <Text style={styles.text_indication}>
-          {isPortrait
+          {isGamma
             ? "  Pointez la caméra vers le point"
             : "  Redressz le telephone "}
         </Text>
 
         {/* Cercle d'orientation vide  au centre  */}
-        <View style={styles.container_progress}>
+        <View style={[styles.container_progress, container_progress_style]}>
           <CircularProgress
             ref={progressRef}
             value={progressValue}
             radius={52}
-            duration={500}
+            duration={1000}
             progressValueColor={"transparent"}
             activeStrokeColor={Colors.primary}
             inActiveStrokeColor={Colors.light}
@@ -159,6 +180,38 @@ const Panorama_captures = ({ cameraVisible, setCameraVisible }: props) => {
 
         {/* Cercle en mouvement  */}
         <View style={[styles.cercle_plein, cercle_plein]}></View>
+
+        {/* Informations d'orientation */}
+        <View style={styles.conatiner_orientation}>
+          <Text>Axe alpha Z : {rotation.alpha}°</Text>
+          <Text>Axe beta X : {rotation.beta}°</Text>
+          <Text>Axe gamma Y: {rotation.gamma}°</Text>
+
+          {/* Status détaillé */}
+          <View style={styles.status_container}>
+            <Text style={styles.status_item}>
+              Inclinaison:{" "}
+              {tolérance_beta_min <= Math.abs(rotation.beta) &&
+              Math.abs(rotation.beta) <= tolérance_beta_max
+                ? "✅"
+                : "❌"}
+            </Text>
+            <Text style={styles.status_item}>
+              Stabilité:{" "}
+              {Math.abs(rotation.gamma) <= tolérance_gamma ? "✅" : "❌"}
+            </Text>
+          </View>
+
+          {isStraight ? (
+            <Text style={[styles.message, { color: "lime", marginTop: 10 }]}>
+              ✅ Position parfaite !
+            </Text>
+          ) : (
+            <Text style={[styles.message, { color: "red", marginTop: 10 }]}>
+              Orientez vers le nord et ajustez l&lsquo;inclinaison...
+            </Text>
+          )}
+        </View>
       </View>
     </Modal>
   );

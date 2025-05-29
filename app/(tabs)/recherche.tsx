@@ -1,4 +1,4 @@
-import VirtualTourCreator from "@/Components/Annonces/VirtualTourCreator";
+
 import { View } from "react-native";
 
 export default function Recherche (){
@@ -10,8 +10,6 @@ export default function Recherche (){
           alignItems: "center",
         }}
       >
-        {/* <Text>Page Favoris</Text> */}
-        <VirtualTourCreator/>
       </View>
     );
 }

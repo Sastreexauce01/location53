@@ -1,8 +1,8 @@
 import { atom } from "jotai";
-import { AnnonceType } from "@/assets/Types/type";
+import { AnnonceType,  Scene360_Type } from "@/assets/Types/type";
+import uuid from 'react-native-uuid';
 
-
-export const annonceAtom = atom<AnnonceType>({
+export const annonce_Atom = atom<AnnonceType>({
   id:0,
   nomAnnonce:"",
   typeAnnonce: "",
@@ -19,5 +19,12 @@ export const annonceAtom = atom<AnnonceType>({
   date_creation: "",
   id_agent: "",
 });
+
+
+
+export const Scene360_Atom= atom<Scene360_Type>({
+ id: uuid.v4(),
+  photos: [],
+})
 
 

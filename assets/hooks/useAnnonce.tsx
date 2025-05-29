@@ -1,12 +1,12 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useAtom } from "jotai";
-import { annonceAtom } from "@/Data/annonceAtoms";
+import { annonce_Atom } from "@/Data/Atoms";
 import { AnnonceType } from "@/assets/Types/type";
 import { useEffect } from "react";
 
 export const useAnnonce =  () => {
 
-  const [annonce, Setannonce] = useAtom(annonceAtom);
+  const [annonce, Setannonce] = useAtom(annonce_Atom);
 
   // Fonction pour sauvegarder l'annonce dans AsyncStorage
   const saveAnnonce = async (newAnnonce: AnnonceType) => {
