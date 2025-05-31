@@ -6,7 +6,7 @@ import { DeviceMotion } from "expo-sensors";
 import { Colors } from "../Colors";
 import { EventSubscription } from "expo-modules-core";
 import CircularProgress from "react-native-circular-progress-indicator";
-
+import Svg, { Line } from "react-native-svg";
 import { useAtom } from "jotai";
 import { Scene360_Atom } from "../../Data/Atoms";
 
@@ -20,12 +20,13 @@ const Panorama_captures = ({ cameraVisible, setCameraVisible }: props) => {
   const progressRef = useRef<any>(null); // ou CircularProgressHandle si typé
   const [progressValue, setProgressValue] = useState(0);
   const [rotation, setRotation] = useState({ alpha: 0, beta: 0, gamma: 0 });
+  const [ecartangle, setecartAngle] = useState<number>(0);
 
   const ref = useRef<CameraView>(null);
   const [scene, setScene] = useAtom(Scene360_Atom);
 
   // const tolérance_alpha = 20; // Tolérance pour l'orientation nord (±20°)
-  const tolérance_beta_min = 75;
+  const tolérance_beta_min = 70;
   const tolérance_beta_max = 80;
   const tolérance_gamma = 15;
 
@@ -40,17 +41,21 @@ const Panorama_captures = ({ cameraVisible, setCameraVisible }: props) => {
   const isGamma = Math.abs(rotation.gamma) <= tolérance_gamma;
 
   // condition pour verifier la direction du telephone alpha z
-  const isAlpha = () => {
-    if (scene.photos.length === 0) {
-      // Si aucune photo, on accepte la première position
-      return true;
-    }
 
-    const last_alpha = scene.photos[scene.photos.length - 1].rotation.alpha;
-    const ecart_angle = Math.abs(last_alpha - rotation.alpha);
-    if (ecart_angle <= 10) {
-      return true;
-    } else return false;
+  useEffect(() => {
+    if (scene.photos.length > 0) {
+      const last_alpha = scene.photos[scene.photos.length - 1].rotation.alpha;
+      const raw_diff = rotation.alpha - last_alpha;
+      const ecart_angle = Math.abs(((raw_diff + 180) % 360) - 180);
+      setecartAngle(ecart_angle);
+    } else {
+      setecartAngle(0); // Pas de photo précédente, on remet à zéro
+    }
+  }, [rotation.alpha, scene.photos]);
+
+  const isAlpha = () => {
+    if (scene.photos.length === 0) return true;
+    return ecartangle >= 60 && ecartangle <= 65;
   };
 
   // condition pour verifier que le telephone est dans la bonne orientation
@@ -72,7 +77,7 @@ const Panorama_captures = ({ cameraVisible, setCameraVisible }: props) => {
         setRotation(r);
       });
 
-      await DeviceMotion.setUpdateInterval(100);
+      await DeviceMotion.setUpdateInterval(5);
     };
 
     if (cameraVisible) {
@@ -88,7 +93,9 @@ const Panorama_captures = ({ cameraVisible, setCameraVisible }: props) => {
 
   const cercle_plein = {
     transform: [
-      { translateY: rotation.beta * 5 }, // Mouvement basé sur l'inclinaison avant/arrière
+      {
+        translateY: rotation.beta * 5,
+      },
     ],
 
     backgroundColor: `${isGamma ? "white" : Colors.primary}`,
@@ -96,7 +103,11 @@ const Panorama_captures = ({ cameraVisible, setCameraVisible }: props) => {
   };
 
   const container_progress_style = {
-    transform: [{ translateX: -rotation.alpha * 2 }], //la procahine destination
+    transform: [
+      {
+        translateX: scene.photos.length === 0 ? 0 : -(ecartangle - 60) * 5, //la procahine destination  );
+      },
+    ],
   };
 
   // Declencher l'animation
@@ -114,7 +125,7 @@ const Panorama_captures = ({ cameraVisible, setCameraVisible }: props) => {
   const takePicture = async () => {
     if (progressValue === 100 && ref.current) {
       const photo = await ref.current.takePictureAsync();
-
+      alert(scene.photos.length);
       const newPhoto = {
         rotation: rotation,
         uri: photo.uri,
@@ -124,7 +135,6 @@ const Panorama_captures = ({ cameraVisible, setCameraVisible }: props) => {
         ...prevScene,
         photos: [...prevScene.photos, newPhoto],
       }));
-      alert(scene.photos.length);
     }
   };
 
@@ -156,8 +166,12 @@ const Panorama_captures = ({ cameraVisible, setCameraVisible }: props) => {
         </Pressable>
 
         <Text style={styles.text_indication}>
-          {isGamma
-            ? "  Pointez la caméra vers le point"
+          {isAlpha()
+            ? isBeta
+              ? isGamma
+                ? "  Pointez la caméra vers le point"
+                : "Tourner a droite "
+              : "Reicnclinez le telephone "
             : "  Redressz le telephone "}
         </Text>
 
@@ -167,7 +181,7 @@ const Panorama_captures = ({ cameraVisible, setCameraVisible }: props) => {
             ref={progressRef}
             value={progressValue}
             radius={52}
-            duration={1000}
+            duration={200}
             progressValueColor={"transparent"}
             activeStrokeColor={Colors.primary}
             inActiveStrokeColor={Colors.light}
@@ -178,19 +192,34 @@ const Panorama_captures = ({ cameraVisible, setCameraVisible }: props) => {
           />
         </View>
 
+        <View style={{ position: "absolute", width: "100%", top: "44%" }}>
+          <Svg height="100" width="200">
+            <Line
+              x1="40"
+              y1="55"
+              x2={10}
+              y2="55"
+              stroke="#45b7d1"
+              strokeWidth="4"
+              strokeLinecap="round"
+              strokeDasharray="3,12"
+            />
+          </Svg>
+        </View>
         {/* Cercle en mouvement  */}
         <View style={[styles.cercle_plein, cercle_plein]}></View>
 
-        {/* Informations d'orientation */}
         <View style={styles.conatiner_orientation}>
           <Text>Axe alpha Z : {rotation.alpha}°</Text>
           <Text>Axe beta X : {rotation.beta}°</Text>
           <Text>Axe gamma Y: {rotation.gamma}°</Text>
+          <Text>Axe gamma Y: {rotation.gamma}°</Text>
 
-          {/* Status détaillé */}
+          <Text>delta: {ecartangle} °</Text>
+
           <View style={styles.status_container}>
             <Text style={styles.status_item}>
-              Inclinaison:{" "}
+              Inclinaison:
               {tolérance_beta_min <= Math.abs(rotation.beta) &&
               Math.abs(rotation.beta) <= tolérance_beta_max
                 ? "✅"
