@@ -39,7 +39,9 @@ const SearchScreen = () => {
           ]}
           disabled={searchQuery.length < 1}
           onPress={() =>
-            router.push(`/annonces/SearchResults/query=${searchQuery}`)
+            router.push(
+              `/annonces/SearchResults?query=${encodeURIComponent(searchQuery)}`
+            )
           } // Navigation avec paramètre /Screen/annonces/SearchResults?query=${searchQuery}
         >
           <Text style={styles.buttonText}>Rechercher</Text>

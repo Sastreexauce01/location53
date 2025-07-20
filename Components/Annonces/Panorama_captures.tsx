@@ -1,6 +1,21 @@
 import { Entypo } from "@expo/vector-icons";
-import React, { useEffect, useRef, useState } from "react";
-import { Modal, Pressable, StyleSheet, View, Text, Button } from "react-native";
+import Ionicons from "@expo/vector-icons/Ionicons";
+import React, {
+  useEffect,
+  useRef,
+  useState,
+  useMemo,
+  useCallback,
+} from "react";
+import {
+  Modal,
+  Pressable,
+  StyleSheet,
+  View,
+  Text,
+  Button,
+  Alert,
+} from "react-native";
 import { CameraView, useCameraPermissions } from "expo-camera";
 import { DeviceMotion } from "expo-sensors";
 import { Colors } from "../Colors";
@@ -10,136 +25,329 @@ import Svg, { Line } from "react-native-svg";
 import { useAtom } from "jotai";
 import { Scene360_Atom } from "../../Data/Atoms";
 
-type props = {
+type Props = {
   cameraVisible: boolean;
   setCameraVisible: (cameraVisible: boolean) => void;
 };
 
-const Panorama_captures = ({ cameraVisible, setCameraVisible }: props) => {
-  const [permission, requestPermission] = useCameraPermissions();
-  const progressRef = useRef<any>(null); // ou CircularProgressHandle si typé
-  const [progressValue, setProgressValue] = useState(0);
-  const [rotation, setRotation] = useState({ alpha: 0, beta: 0, gamma: 0 });
-  const [ecartangle, setecartAngle] = useState<number>(0);
+interface Rotation {
+  alpha: number;
+  beta: number;
+  gamma: number;
+}
 
-  const ref = useRef<CameraView>(null);
+type CaptureMode = "horizontal" | "sky" | "ground";
+
+interface CaptureConfig {
+  mode: CaptureMode;
+  betaRange: [number, number];
+  description: string;
+}
+
+// Constantes pour l'orientation
+const ORIENTATION_TOLERANCES = {
+  BETA_MIN: 70,
+  BETA_MAX: 80,
+  GAMMA_MAX: 15,
+  ANGLE_MIN: 60,
+  ANGLE_MAX: 65,
+  // Nouvelles constantes pour ciel et sol
+  SKY_BETA_MIN: -100,
+  SKY_BETA_MAX: -80,
+  GROUND_BETA_MIN: 80,
+  GROUND_BETA_MAX: 100,
+} as const;
+
+// Configuration des modes de capture
+const CAPTURE_MODES: Record<CaptureMode, CaptureConfig> = {
+  horizontal: {
+    mode: "horizontal",
+    betaRange: [70, 80],
+    description: "Balayage horizontal",
+  },
+  sky: {
+    mode: "sky",
+    betaRange: [-100, -80],
+    description: "Photo du ciel",
+  },
+  ground: {
+    mode: "ground",
+    betaRange: [80, 100],
+    description: "Photo du sol",
+  },
+} as const;
+
+const UPDATE_INTERVAL = 50; // ms
+const PROGRESS_ANIMATION_DURATION = 500; // ms
+
+const Panorama_captures = ({ cameraVisible, setCameraVisible }: Props) => {
+  const [permission, requestPermission] = useCameraPermissions();
+  const progressRef = useRef<any>(null);
+  const cameraRef = useRef<CameraView>(null);
+
+  const [progressValue, setProgressValue] = useState(0);
+  const [rotation, setRotation] = useState<Rotation>({
+    alpha: 0,
+    beta: 0,
+    gamma: 0,
+  });
+  const [isCapturing, setIsCapturing] = useState(false);
+  const [currentCaptureMode, setCurrentCaptureMode] =
+    useState<CaptureMode>("horizontal");
+
   const [scene, setScene] = useAtom(Scene360_Atom);
 
-  // const tolérance_alpha = 20; // Tolérance pour l'orientation nord (±20°)
-  const tolérance_beta_min = 70;
-  const tolérance_beta_max = 80;
-  const tolérance_gamma = 15;
+  // Utilitaires
+  const radToDeg = useCallback(
+    (rad: number): number => rad * (180 / Math.PI),
+    []
+  );
 
-  const radToDeg = (rad: number) => rad * (180 / Math.PI);
+  // Détermine le mode de capture basé sur le nombre de photos
+  const getCaptureMode = useCallback((): CaptureMode => {
+    const photoCount = scene.photos.length;
+    if (photoCount < 6) return "horizontal";
+    if (photoCount === 6) return "sky";
+    return "ground";
+  }, [scene.photos.length]);
 
-  // condtion pou verifier l'inclinaison du telephone  beta x
-  const isBeta =
-    tolérance_beta_min <= Math.abs(rotation.beta) &&
-    Math.abs(rotation.beta) <= tolérance_beta_max;
-
-  // condition pour verifier la stabilite du telephone  gamma y
-  const isGamma = Math.abs(rotation.gamma) <= tolérance_gamma;
-
-  // condition pour verifier la direction du telephone alpha z
-
+  // Met à jour le mode de capture
   useEffect(() => {
-    if (scene.photos.length > 0) {
-      const last_alpha = scene.photos[scene.photos.length - 1].rotation.alpha;
-      const raw_diff = rotation.alpha - last_alpha;
-      const ecart_angle = Math.abs(((raw_diff + 180) % 360) - 180);
-      setecartAngle(ecart_angle);
-    } else {
-      setecartAngle(0); // Pas de photo précédente, on remet à zéro
+    setCurrentCaptureMode(getCaptureMode());
+  }, [getCaptureMode]);
+
+  // Calcul de l'écart d'angle avec mémoisation (seulement pour le mode horizontal)
+  const angleDeviation = useMemo(() => {
+    if (currentCaptureMode !== "horizontal") return 0;
+    if (scene.photos.length === 0) return 0;
+
+    const lastAlpha = scene.photos[scene.photos.length - 1].rotation.alpha;
+    const rawDiff = rotation.alpha - lastAlpha;
+    return Math.abs(((rawDiff + 180) % 360) - 180);
+  }, [rotation.alpha, scene.photos, currentCaptureMode]);
+
+  // Vérifications d'orientation avec mémoisation
+  const orientationChecks = useMemo(() => {
+    let isBeta = false;
+    let isAlpha = true;
+
+    switch (currentCaptureMode) {
+      case "horizontal":
+        isBeta =
+          ORIENTATION_TOLERANCES.BETA_MIN <= Math.abs(rotation.beta) &&
+          Math.abs(rotation.beta) <= ORIENTATION_TOLERANCES.BETA_MAX;
+        isAlpha =
+          scene.photos.length === 0 ||
+          (angleDeviation >= ORIENTATION_TOLERANCES.ANGLE_MIN &&
+            angleDeviation <= ORIENTATION_TOLERANCES.ANGLE_MAX);
+        break;
+      case "sky":
+        isBeta =
+          ORIENTATION_TOLERANCES.SKY_BETA_MIN <= rotation.beta &&
+          rotation.beta <= ORIENTATION_TOLERANCES.SKY_BETA_MAX;
+        isAlpha = true; // Pas de contrainte d'angle pour le ciel
+        break;
+      case "ground":
+        isBeta =
+          ORIENTATION_TOLERANCES.GROUND_BETA_MIN <= rotation.beta &&
+          rotation.beta <= ORIENTATION_TOLERANCES.GROUND_BETA_MAX;
+        isAlpha = true; // Pas de contrainte d'angle pour le sol
+        break;
     }
-  }, [rotation.alpha, scene.photos]);
 
-  const isAlpha = () => {
-    if (scene.photos.length === 0) return true;
-    return ecartangle >= 60 && ecartangle <= 65;
-  };
+    const isGamma =
+      Math.abs(rotation.gamma) <= ORIENTATION_TOLERANCES.GAMMA_MAX;
 
-  // condition pour verifier que le telephone est dans la bonne orientation
-  const isStraight = isBeta && isGamma && isAlpha();
+    return { isBeta, isGamma, isAlpha };
+  }, [
+    rotation.beta,
+    rotation.gamma,
+    angleDeviation,
+    currentCaptureMode,
+    scene.photos.length,
+  ]);
 
+  const isPerfectOrientation =
+    orientationChecks.isBeta &&
+    orientationChecks.isGamma &&
+    orientationChecks.isAlpha;
+
+  // Message d'orientation amélioré
+  const orientationMessage = useMemo(() => {
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const config = CAPTURE_MODES[currentCaptureMode];
+
+    if (currentCaptureMode === "sky") {
+      if (!orientationChecks.isBeta)
+        return "Pointez vers le ciel (inclinez vers le haut)";
+      if (!orientationChecks.isGamma) return "Stabilisez le téléphone";
+      return "Parfait ! Capturez le ciel";
+    }
+
+    if (currentCaptureMode === "ground") {
+      if (!orientationChecks.isBeta)
+        return "Pointez vers le sol (inclinez vers le bas)";
+      if (!orientationChecks.isGamma) return "Stabilisez le téléphone";
+      return "Parfait ! Capturez le sol";
+    }
+
+    // Mode horizontal
+    if (!orientationChecks.isAlpha)
+      return "Tournez de 60° depuis la dernière photo";
+    if (!orientationChecks.isBeta)
+      return "Inclinez le téléphone horizontalement";
+    if (!orientationChecks.isGamma) return "Stabilisez le téléphone";
+    return "Pointez la caméra vers le point";
+  }, [orientationChecks, currentCaptureMode]);
+
+  // Gestion des capteurs avec nettoyage approprié
   useEffect(() => {
     let subscription: EventSubscription;
 
-    const subscribe = async () => {
-      subscription = DeviceMotion.addListener((rotationData) => {
-        const { alpha, beta, gamma } = rotationData.rotation ?? {};
+    const subscribeToMotion = async () => {
+      try {
+        await DeviceMotion.setUpdateInterval(UPDATE_INTERVAL);
 
-        const r = {
-          alpha: Number(radToDeg(alpha ?? 0).toFixed(2)),
-          beta: Number(radToDeg(beta ?? 0).toFixed(2)),
-          gamma: Number(radToDeg(gamma ?? 0).toFixed(2)),
-        };
+        subscription = DeviceMotion.addListener((motionData) => {
+          const { alpha, beta, gamma } = motionData.rotation ?? {};
 
-        setRotation(r);
-      });
-
-      await DeviceMotion.setUpdateInterval(5);
+          if (
+            alpha !== undefined &&
+            beta !== undefined &&
+            gamma !== undefined
+          ) {
+            setRotation({
+              alpha: Number(radToDeg(alpha).toFixed(2)),
+              beta: Number(radToDeg(beta).toFixed(2)),
+              gamma: Number(radToDeg(gamma).toFixed(2)),
+            });
+          }
+        });
+      } catch (error) {
+        console.error("Erreur lors de l'initialisation des capteurs:", error);
+      }
     };
 
     if (cameraVisible) {
-      subscribe();
+      subscribeToMotion();
     }
 
     return () => {
-      if (subscription) {
-        subscription.remove();
-      }
+      subscription?.remove();
     };
-  }, [cameraVisible]); // Suppression de la dépendance rotation qui causait le cycle infini
+  }, [cameraVisible, radToDeg]);
 
-  const cercle_plein = {
-    transform: [
-      {
-        translateY: rotation.beta * 5,
-      },
-    ],
-
-    backgroundColor: `${isGamma ? "white" : Colors.primary}`,
-    top: 40,
-  };
-
-  const container_progress_style = {
-    transform: [
-      {
-        translateX: scene.photos.length === 0 ? 0 : -(ecartangle - 60) * 5, //la procahine destination  );
-      },
-    ],
-  };
-
-  // Declencher l'animation
+  // Gestion de l'animation de progression
   useEffect(() => {
-    if (isStraight) {
-      setProgressValue(100); // déclenche animation vers 100
-    } else if (!isStraight) {
+    if (isPerfectOrientation && !isCapturing) {
+      setProgressValue(100);
+    } else {
       setProgressValue(0);
       progressRef.current?.reAnimate();
     }
-  }, [isStraight]);
+  }, [isPerfectOrientation, isCapturing]);
 
-  // Fonction pou la prise de photo
+  // Fonction de capture améliorée
+  const takePicture = useCallback(async () => {
+    if (progressValue !== 100 || !cameraRef.current || isCapturing) return;
 
-  const takePicture = async () => {
-    if (progressValue === 100 && ref.current) {
-      const photo = await ref.current.takePictureAsync();
-      alert(scene.photos.length);
-      const newPhoto = {
-        rotation: rotation,
-        uri: photo.uri,
-      };
+    setIsCapturing(true);
 
-      setScene((prevScene) => ({
-        ...prevScene,
-        photos: [...prevScene.photos, newPhoto],
-      }));
+    try {
+      const photo = await cameraRef.current.takePictureAsync({
+        quality: 0.8,
+        base64: false,
+        exif: false,
+      });
+
+      if (photo?.uri) {
+        const newPhoto = {
+          rotation: { ...rotation },
+          uri: photo.uri,
+          timestamp: Date.now(),
+          mode: currentCaptureMode,
+        };
+
+        setScene((prevScene) => ({
+          ...prevScene,
+          photos: [...prevScene.photos, newPhoto],
+        }));
+
+        // Feedback visuel avec mode spécifique
+        const modeText =
+          currentCaptureMode === "horizontal"
+            ? "horizontale"
+            : currentCaptureMode === "sky"
+            ? "du ciel"
+            : "du sol";
+
+        Alert.alert(
+          "Photo capturée",
+          `Photo ${modeText} ajoutée (${scene.photos.length + 1}/8)`,
+          [{ text: "OK" }]
+        );
+
+        // Vérifier si le panorama est complet
+        if (scene.photos.length + 1 === 8) {
+          setTimeout(() => {
+            Alert.alert(
+              "Panorama terminé !",
+              "Votre panorama 360° est maintenant complet avec 8 photos.",
+              [
+                {
+                  text: "Voir le résultat",
+                  onPress: () => setCameraVisible(false),
+                },
+                { text: "Continuer", style: "cancel" },
+              ]
+            );
+          }, 500);
+        }
+      }
+    } catch (error) {
+      console.error("Erreur lors de la capture:", error);
+      Alert.alert("Erreur", "Impossible de prendre la photo");
+    } finally {
+      setIsCapturing(false);
     }
-  };
+  }, [
+    progressValue,
+    isCapturing,
+    rotation,
+    currentCaptureMode,
+    setScene,
+    scene.photos.length,
+    setCameraVisible,
+  ]);
 
+  // Styles dynamiques avec mémoisation
+  const dynamicStyles = useMemo(
+    () => ({
+      orientationCircle: {
+        transform: [{ translateY: rotation.beta * 5 }],
+        backgroundColor: orientationChecks.isGamma ? "white" : Colors.primary,
+        top: 40,
+      },
+      progressContainer: {
+        transform: [
+          {
+            translateX:
+              scene.photos.length === 0 ? 0 : -(angleDeviation - 60) * 5,
+          },
+        ],
+      },
+    }),
+    [
+      rotation.beta,
+      orientationChecks.isGamma,
+      angleDeviation,
+      scene.photos.length,
+    ]
+  );
+
+  // Gestion des permissions
   if (!permission) {
-    return <View />;
+    return <View style={styles.container} />;
   }
 
   if (!permission.granted) {
@@ -148,7 +356,7 @@ const Panorama_captures = ({ cameraVisible, setCameraVisible }: props) => {
         <Text style={styles.message}>
           Nous avons besoin de la permission pour afficher la caméra
         </Text>
-        <Button onPress={requestPermission} title="grant permission" />
+        <Button onPress={requestPermission} title="Accorder la permission" />
       </View>
     );
   }
@@ -156,91 +364,137 @@ const Panorama_captures = ({ cameraVisible, setCameraVisible }: props) => {
   return (
     <Modal visible={cameraVisible} animationType="slide">
       <View style={styles.container}>
-        <CameraView style={styles.camera} facing={"back"} ref={ref} />
+        <CameraView
+          style={styles.camera}
+          facing="back"
+          ref={cameraRef}
+          animateShutter={false}
+        />
 
+        {/* Bouton de fermeture */}
         <Pressable
-          onPress={() => setCameraVisible(!cameraVisible)}
-          style={styles.icone_back}
+          onPress={() => setCameraVisible(false)}
+          style={styles.closeButton}
+          hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
         >
           <Entypo name="cross" size={30} color="white" />
         </Pressable>
 
-        <Text style={styles.text_indication}>
-          {isAlpha()
-            ? isBeta
-              ? isGamma
-                ? "  Pointez la caméra vers le point"
-                : "Tourner a droite "
-              : "Reicnclinez le telephone "
-            : "  Redressz le telephone "}
+        {/* Indicateur de progression */}
+        <Text style={styles.progressText}>
+          {scene.photos.length} / 6 photos
         </Text>
 
-        {/* Cercle d'orientation vide  au centre  */}
-        <View style={[styles.container_progress, container_progress_style]}>
+        {/* Message d'orientation */}
+        <Text style={styles.orientationMessage}>{orientationMessage}</Text>
+
+        {/* Cercle de progression avec couleur selon le mode */}
+        <View
+          style={[styles.progressContainer, dynamicStyles.progressContainer]}
+        >
           <CircularProgress
             ref={progressRef}
             value={progressValue}
             radius={52}
-            duration={200}
-            progressValueColor={"transparent"}
-            activeStrokeColor={Colors.primary}
+            duration={PROGRESS_ANIMATION_DURATION}
+            progressValueColor="transparent"
+            activeStrokeColor={
+              currentCaptureMode === "sky"
+                ? "#87CEEB"
+                : currentCaptureMode === "ground"
+                ? "#8B4513"
+                : Colors.primary
+            }
             inActiveStrokeColor={Colors.light}
             inActiveStrokeOpacity={0.9}
             inActiveStrokeWidth={8}
             activeStrokeWidth={8}
             onAnimationComplete={takePicture}
           />
-        </View>
 
-        <View style={{ position: "absolute", width: "100%", top: "44%" }}>
-          <Svg height="100" width="200">
-            <Line
-              x1="40"
-              y1="55"
-              x2={10}
-              y2="55"
-              stroke="#45b7d1"
-              strokeWidth="4"
-              strokeLinecap="round"
-              strokeDasharray="3,12"
+          {/* Icône au centre selon le mode */}
+          <View style={styles.progressIcon}>
+            <Ionicons
+              name={
+                currentCaptureMode === "sky"
+                  ? "sunny"
+                  : currentCaptureMode === "ground"
+                  ? "earth"
+                  : "camera"
+              }
+              size={24}
+              color={
+                currentCaptureMode === "sky"
+                  ? "#87CEEB"
+                  : currentCaptureMode === "ground"
+                  ? "#8B4513"
+                  : Colors.primary
+              }
             />
-          </Svg>
+          </View>
         </View>
-        {/* Cercle en mouvement  */}
-        <View style={[styles.cercle_plein, cercle_plein]}></View>
 
-        <View style={styles.conatiner_orientation}>
-          <Text>Axe alpha Z : {rotation.alpha}°</Text>
-          <Text>Axe beta X : {rotation.beta}°</Text>
-          <Text>Axe gamma Y: {rotation.gamma}°</Text>
-          <Text>Axe gamma Y: {rotation.gamma}°</Text>
+        {/* Ligne de guidage (seulement pour le mode horizontal) */}
+        {currentCaptureMode === "horizontal" && (
+          <View style={styles.guideLine}>
+            <Svg height="100" width="200">
+              <Line
+                x1="40"
+                y1="55"
+                x2="10"
+                y2="55"
+                stroke="#45b7d1"
+                strokeWidth="4"
+                strokeLinecap="round"
+                strokeDasharray="3,12"
+              />
+            </Svg>
+          </View>
+        )}
 
-          <Text>delta: {ecartangle} °</Text>
+        {/* Cercle d'orientation */}
+        <View
+          style={[styles.orientationCircle, dynamicStyles.orientationCircle]}
+        />
 
-          <View style={styles.status_container}>
-            <Text style={styles.status_item}>
-              Inclinaison:
-              {tolérance_beta_min <= Math.abs(rotation.beta) &&
-              Math.abs(rotation.beta) <= tolérance_beta_max
-                ? "✅"
-                : "❌"}
+        {/* Informations de débogage (optionnel) */}
+        {__DEV__ && (
+          <View style={styles.debugInfo}>
+            <Text style={styles.debugText}>Alpha (Z): {rotation.alpha}°</Text>
+            <Text style={styles.debugText}>Beta (X): {rotation.beta}°</Text>
+            <Text style={styles.debugText}>Gamma (Y): {rotation.gamma}°</Text>
+            <Text style={styles.debugText}>Mode: {currentCaptureMode}</Text>
+            <Text style={styles.debugText}>
+              Écart: {angleDeviation.toFixed(1)}°
             </Text>
-            <Text style={styles.status_item}>
-              Stabilité:{" "}
-              {Math.abs(rotation.gamma) <= tolérance_gamma ? "✅" : "❌"}
+
+            <View style={styles.statusContainer}>
+              <Text style={styles.statusItem}>
+                Inclinaison: {orientationChecks.isBeta ? "✅" : "❌"}
+              </Text>
+              <Text style={styles.statusItem}>
+                Stabilité: {orientationChecks.isGamma ? "✅" : "❌"}
+              </Text>
+              <Text style={styles.statusItem}>
+                Angle: {orientationChecks.isAlpha ? "✅" : "❌"}
+              </Text>
+            </View>
+
+            <Text
+              style={[
+                styles.message,
+                {
+                  color: isPerfectOrientation ? "lime" : "red",
+                  marginTop: 10,
+                },
+              ]}
+            >
+              {isPerfectOrientation
+                ? "✅ Position parfaite !"
+                : "❌ Ajustez l'orientation"}
             </Text>
           </View>
-
-          {isStraight ? (
-            <Text style={[styles.message, { color: "lime", marginTop: 10 }]}>
-              ✅ Position parfaite !
-            </Text>
-          ) : (
-            <Text style={[styles.message, { color: "red", marginTop: 10 }]}>
-              Orientez vers le nord et ajustez l&lsquo;inclinaison...
-            </Text>
-          )}
-        </View>
+        )}
       </View>
     </Modal>
   );
@@ -252,23 +506,49 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     justifyContent: "center",
+    backgroundColor: "black",
   },
   message: {
     textAlign: "center",
     paddingBottom: 10,
     fontWeight: "600",
+    color: "white",
   },
   camera: {
     flex: 1,
   },
-  icone_back: {
+  closeButton: {
     position: "absolute",
-    alignItems: "flex-end",
     top: 60,
     right: 20,
     zIndex: 1,
+    backgroundColor: "rgba(0, 0, 0, 0.3)",
+    borderRadius: 20,
+    padding: 5,
   },
-  text_indication: {
+  progressText: {
+    color: "white",
+    fontSize: 16,
+    fontWeight: "600",
+    textAlign: "center",
+  },
+  modeText: {
+    color: "white",
+    fontSize: 12,
+    fontWeight: "400",
+    textAlign: "center",
+    marginTop: 2,
+  },
+  progressInfo: {
+    position: "absolute",
+    top: 70,
+    left: 20,
+    backgroundColor: "rgba(0, 0, 0, 0.5)",
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    borderRadius: 15,
+  },
+  orientationMessage: {
     position: "absolute",
     backgroundColor: Colors.light,
     top: "15%",
@@ -277,28 +557,37 @@ const styles = StyleSheet.create({
     paddingVertical: 15,
     fontWeight: "500",
     borderRadius: 10,
-    fontSize: 20,
+    fontSize: 18,
     textAlign: "center",
+    maxWidth: "80%",
   },
-
-  container_progress: {
+  progressContainer: {
     position: "absolute",
     alignSelf: "center",
     top: "44%",
   },
-
-  cercle_plein: {
+  progressIcon: {
+    position: "absolute",
+    alignSelf: "center",
+    top: "50%",
+    left: "50%",
+    transform: [{ translateX: -12 }, { translateY: -12 }],
+  },
+  guideLine: {
+    position: "absolute",
+    width: "100%",
+    top: "44%",
+  },
+  orientationCircle: {
     position: "absolute",
     width: 80,
     height: 80,
-    borderRadius: 50,
-
-    // borderWidth: 4,
+    borderRadius: 40,
+    borderWidth: 2,
     borderColor: "white",
     alignSelf: "center",
   },
-
-  conatiner_orientation: {
+  debugInfo: {
     position: "absolute",
     backgroundColor: "rgba(255, 255, 255, 0.9)",
     bottom: 100,
@@ -307,14 +596,19 @@ const styles = StyleSheet.create({
     padding: 15,
     borderRadius: 10,
   },
-
-  status_container: {
+  debugText: {
+    fontSize: 12,
+    marginBottom: 2,
+  },
+  statusContainer: {
     marginTop: 10,
     flexDirection: "row",
     justifyContent: "space-around",
+    flexWrap: "wrap",
   },
-  status_item: {
+  statusItem: {
     fontSize: 12,
     fontWeight: "500",
+    marginHorizontal: 5,
   },
 });

@@ -1,45 +1,14 @@
 import {
-  Entypo,
-  MaterialIcons,
+  // Entypo,
+  // MaterialIcons,
   FontAwesome5,
-  Ionicons,
+  // Ionicons,
   FontAwesome,
   MaterialCommunityIcons,
   FontAwesome6,
 } from "@expo/vector-icons";
 
 import { Colors } from "@/Components/Colors";
-export const Data_setting = [
-  {
-    icone: <FontAwesome5 name="crown" size={20} color={Colors.primary} />,
-    title: "Abonnement",
-  },
-  {
-    icone: <MaterialIcons name="bar-chart" size={20} color={Colors.primary} />,
-    title: "Statistiques",
-  },
-  {
-    icone: (
-      <Ionicons name="notifications-outline" size={20} color={Colors.primary} />
-    ),
-    title: "Notifications",
-  },
-  {
-    icone: <Entypo name="language" size={20} color={Colors.primary} />,
-    title: "Langue",
-  },
-];
-
-export const Data_support = [
-  {
-    icone: <Entypo name="help" size={20} color={Colors.primary} />,
-    title: "Centre d'aide",
-  },
-  {
-    icone: <MaterialIcons name="bug-report" size={20} color={Colors.primary} />,
-    title: "Rapport de bug",
-  },
-];
 
 export const icone_acessibilite = [
   {
@@ -120,4 +89,92 @@ export const Data_Categorie_Appartement = [
   "villas",
   "Chambre",
   "Hotel",
+];
+
+
+// @/Data/data.ts
+export const Data_setting = [
+  {
+    id: 1,
+    title: "Notifications",
+    subtitle: "Gérer vos notifications",
+    icon: "notification",
+    color: "#FF6B6B",
+    route: "/settings/notifications"
+  },
+  {
+    id: 2,
+    title: "Confidentialité",
+    subtitle: "Contrôlez vos données",
+    icon: "shield",
+    color: "#4ECDC4",
+    route: "/settings/privacy"
+  },
+  {
+    id: 3,
+    title: "Sécurité",
+    subtitle: "Mot de passe et sécurité",
+    icon: "lock",
+    color: "#45B7D1",
+    route: "/settings/security"
+  },
+  {
+    id: 4,
+    title: "Langue",
+    subtitle: "Français",
+    icon: "global",
+    color: "#96CEB4",
+    route: "/settings/language"
+  },
+  {
+    id: 5,
+    title: "Thème",
+    subtitle: "Clair",
+    icon: "bulb",
+    color: "#FECA57",
+    route: "/settings/theme"
+  }
+];
+
+export const Data_support = [
+  {
+    id: 1,
+    title: "Centre d'aide",
+    subtitle: "FAQ et guides",
+    icon: "question",
+    color: "#A8E6CF",
+    route: "/support/help"
+  },
+  {
+    id: 2,
+    title: "Nous contacter",
+    subtitle: "Assistance par email",
+    icon: "mail",
+    color: "#FFD93D",
+    route: "/support/contact"
+  },
+  {
+    id: 3,
+    title: "Signaler un problème",
+    subtitle: "Rapporter un bug",
+    icon: "exclamation",
+    color: "#FF8A80",
+    route: "/support/report"
+  },
+  {
+    id: 4,
+    title: "Conditions d'utilisation",
+    subtitle: "Termes et conditions",
+    icon: "file-text",
+    color: "#B8B5FF",
+    route: "/support/terms"
+  },
+  {
+    id: 5,
+    title: "Politique de confidentialité",
+    subtitle: "Protection des données",
+    icon: "shield-check",
+    color: "#C7CEEA",
+    route: "/support/privacy-policy"
+  }
 ];

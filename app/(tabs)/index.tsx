@@ -47,7 +47,7 @@ export default function Index() {
           <View style={styles.container_Appartement}>
             <Text style={styles.sectionTitle}>Quelques propriétés</Text>
             <AppartementList />
-            <Text style={styles.viewAll} onPress={()=>router.push("/(tabs)/favoris")}>Voir toutes les propriétés</Text>
+            <Text style={styles.viewAll} onPress={()=>router.push("/")}>Voir toutes les propriétés</Text>
           </View>
 
           {/* Section Destinations populaires */}

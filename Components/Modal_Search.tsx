@@ -10,11 +10,11 @@ import {
   Alert,
   TextInput,
   FlatList,
+  ActivityIndicator,
 } from "react-native";
 
 import * as Location from "expo-location";
 import _ from "lodash";
-import axios from "axios";
 
 import { Colors } from "./Colors";
 
@@ -25,11 +25,27 @@ type props = {
   setModalVisible: any;
 };
 
+interface NominatimPlace {
+  place_id: number;
+  display_name: string;
+  lat: string;
+  lon: string;
+  address?: {
+    city?: string;
+    town?: string;
+    village?: string;
+    municipality?: string;
+    state?: string;
+    region?: string;
+    country?: string;
+  };
+}
+
 const Modal_Search = ({ modalVisible, setModalVisible }: props) => {
-  const {annonce,saveAnnonce}=useAnnonce();
-  const [location, setLocation] =useState<Location.LocationObjectCoords | null>(null);
-  console.log(location) // Localisation actuelle
-  const [citySuggestions, setCitySuggestions] = useState<any[]>([]); // Liste des suggestions de villes
+  const { annonce, saveAnnonce } = useAnnonce();
+  const [location, setLocation] = useState<Location.LocationObjectCoords | null>(null);
+  console.log(location); // Localisation actuelle
+  const [citySuggestions, setCitySuggestions] = useState<NominatimPlace[]>([]); // Liste des suggestions de villes
   const [loading, setLoading] = useState(false); // Pour afficher un indicateur de chargement
   const [searchQuery, setSearchQuery] = useState<string>(""); // Texte de la recherche
 
@@ -45,7 +61,9 @@ const Modal_Search = ({ modalVisible, setModalVisible }: props) => {
         return;
       }
 
-      let userLocation = await Location.getCurrentPositionAsync({});
+      let userLocation = await Location.getCurrentPositionAsync({
+        accuracy: Location.Accuracy.Balanced,
+      });
       setLocation(userLocation.coords);
 
       // Récupérer l'adresse et la stocker
@@ -70,104 +88,158 @@ const Modal_Search = ({ modalVisible, setModalVisible }: props) => {
       }
     } catch (error) {
       Alert.alert("Erreur", "Impossible d'obtenir la position actuelle.");
-      console.error(error)
+      console.error("Erreur de géolocalisation:", error);
     }
   };
 
   // Fonction pour récupérer l'adresse à partir des coordonnées
   const getAddressFromCoords = async (latitude: number, longitude: number) => {
     try {
-      const response = await axios.get(
-        `https://nominatim.openstreetmap.org/reverse`,
-        {
-          params: {
-            lat: latitude,
-            lon: longitude,
-            format: "json",
-            addressdetails: 1,
-          },
-        }
-      );
+      const url = new URL("https://nominatim.openstreetmap.org/reverse");
+      url.searchParams.append("lat", latitude.toString());
+      url.searchParams.append("lon", longitude.toString());
+      url.searchParams.append("format", "json");
+      url.searchParams.append("addressdetails", "1");
+      url.searchParams.append("accept-language", "fr,en");
 
-      const city =
-        response.data.address.city ||
-        response.data.address.town ||
-        response.data.address.village;
-      const region = response.data.address.state;
-      const country = response.data.address.country;
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 10000);
 
-      return `${city}, ${region}, ${country}`;
+      const response = await fetch(url.toString(), {
+        method: "GET",
+        signal: controller.signal,
+        headers: {
+          "User-Agent": "YourAppName/1.0",
+        },
+      });
+
+      clearTimeout(timeoutId);
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const data = await response.json();
+      const address = data.address;
+      const city = address?.city || address?.town || address?.village || address?.municipality;
+      const region = address?.state || address?.region;
+      const country = address?.country;
+
+      if (city && country) {
+        return region ? `${city}, ${region}, ${country}` : `${city}, ${country}`;
+      } else {
+        return data.display_name;
+      }
     } catch (error) {
-      console.error(error);
-      Alert.alert("Erreur", "Impossible de récupérer l'adresse.");
+      console.error("Erreur reverse geocoding:", error);
+      if (error instanceof Error && error.name === "AbortError") {
+        Alert.alert("Erreur", "La recherche a pris trop de temps, veuillez réessayer.");
+      } else {
+        Alert.alert("Erreur", "Impossible de récupérer l'adresse.");
+      }
       return null;
     }
   };
 
-  // Fonction pour récupérer les suggestions des villes avec retry
-
+  // Fonction pour récupérer les suggestions des villes avec Nominatim
   const getCitySuggestions = async (query: string) => {
-    if (query.length < 3) return; // Ne pas effectuer de recherche si le texte est trop court
+    if (query.length < 3) {
+      setCitySuggestions([]);
+      return;
+    }
 
-    setLoading(true); // Afficher le chargement
+    setLoading(true);
 
     try {
-      const response = await axios.get(
-        `https://wft-geo-db.p.rapidapi.com/v1/geo/cities`,
-        {
-          params: {
-            namePrefix: query, // Le début du nom de la ville
-            limit: 10, // Limiter à 5 suggestions
-          },
-          headers: {
-            "x-rapidapi-key":
-              "432539ce65msh4df0ec8f5d91603p1b8572jsn98002c443b39",
-            "x-rapidapi-host": "wft-geo-db.p.rapidapi.com",
-          },
-        }
-      );
+      const url = new URL("https://nominatim.openstreetmap.org/search");
+      url.searchParams.append("q", query);
+      url.searchParams.append("format", "json");
+      url.searchParams.append("addressdetails", "1");
+      url.searchParams.append("limit", "10");
+      url.searchParams.append("accept-language", "fr,en");
+      url.searchParams.append("countrycodes", "");
+      url.searchParams.append("featuretype", "city");
 
-      setCitySuggestions(response.data.data); // Mettre à jour les suggestions
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 10000);
+
+      const response = await fetch(url.toString(), {
+        method: "GET",
+        signal: controller.signal,
+        headers: {
+          "User-Agent": "YourAppName/1.0",
+        },
+      });
+
+      clearTimeout(timeoutId);
+
+      if (!response.ok) {
+        if (response.status === 429) {
+          Alert.alert("Erreur", "Trop de requêtes envoyées, veuillez réessayer plus tard.");
+          return;
+        }
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const data = await response.json();
+
+      // Filtrer et formater les résultats pour privilégier les villes
+      const filteredResults = data.filter((place: NominatimPlace) => {
+        const address = place.address;
+        return address && (
+          address.city || 
+          address.town || 
+          address.village || 
+          address.municipality
+        );
+      });
+
+      setCitySuggestions(filteredResults);
     } catch (error: unknown) {
-      // eslint-disable-next-line import/no-named-as-default-member
-      if (axios.isAxiosError(error)) {
-        if (error.response?.status === 429) {
-          Alert.alert(
-            "Erreur",
-            "Trop de requêtes envoyées, veuillez réessayer plus tard."
-          );
+      console.error("Erreur lors de la recherche:", error);
+      
+      if (error instanceof Error) {
+        if (error.name === "AbortError") {
+          Alert.alert("Erreur", "La recherche a pris trop de temps, veuillez réessayer.");
         } else {
-          console.error("Erreur Axios:", error.message);
           Alert.alert("Erreur", "Impossible de récupérer les suggestions.");
         }
       } else {
-        console.error("Erreur inconnue:", error);
         Alert.alert("Erreur", "Une erreur inconnue est survenue.");
       }
+      
+      setCitySuggestions([]);
     } finally {
-      setLoading(false); // Cacher le chargement
+      setLoading(false);
     }
   };
 
   // Fonction de recherche avec délai (debounce)
-  const debouncedFetchCities = _.debounce(getCitySuggestions, 500); // Délais de 500ms après la dernière saisie
+  const debouncedFetchCities = _.debounce(getCitySuggestions, 800); // Délais de 800ms après la dernière saisie
 
   // Effet qui exécute la recherche après 3 caractères saisis
   useEffect(() => {
-    if (searchQuery.length >= 3) {
-      debouncedFetchCities(searchQuery); // Appeler la fonction debounced
-    }
+    debouncedFetchCities(searchQuery);
+    
+    // Nettoyage du debounce
+    return () => {
+      debouncedFetchCities.cancel();
+    };
   }, [debouncedFetchCities, searchQuery]);
 
   // Fonction appelée lorsqu'une ville est sélectionnée
-  const handleCitySelect = (cityData: {
-    city: string;
-    region: string;
-    country: string;
-    latitude: number;
-    longitude: number;
-  }) => {
-    const formattedAddress = `${cityData.city}, ${cityData.region}, ${cityData.country}`;
+  const handleCitySelect = (place: NominatimPlace) => {
+    const address = place.address;
+    const city = address?.city || address?.town || address?.village || address?.municipality;
+    const region = address?.state || address?.region;
+    const country = address?.country;
+
+    let formattedAddress: string;
+    if (city && country) {
+      formattedAddress = region ? `${city}, ${region}, ${country}` : `${city}, ${country}`;
+    } else {
+      formattedAddress = place.display_name;
+    }
 
     setSearchQuery(formattedAddress); // Met à jour la recherche visible
 
@@ -176,8 +248,8 @@ const Modal_Search = ({ modalVisible, setModalVisible }: props) => {
       adresse: formattedAddress, // Utilise l'adresse formatée directement
       coordonnee: {
         ...annonce.coordonnee,
-        latitude: cityData.latitude,
-        longitude: cityData.longitude,
+        latitude: parseFloat(place.lat),
+        longitude: parseFloat(place.lon),
       },
     });
 
@@ -185,7 +257,21 @@ const Modal_Search = ({ modalVisible, setModalVisible }: props) => {
     setModalVisible(!modalVisible);
   };
 
-  // console.log(`${annonce.adresse} ${"%%%"} ${searchQuery}`);
+  const formatDisplayName = (place: NominatimPlace): string => {
+    const address = place.address;
+    if (!address) return place.display_name;
+
+    const city = address.city || address.town || address.village || address.municipality;
+    const region = address.state || address.region;
+    const country = address.country;
+
+    if (city && country) {
+      return region ? `${city}, ${region}, ${country}` : `${city}, ${country}`;
+    }
+    
+    return place.display_name;
+  };
+
   return (
     <Modal
       visible={modalVisible}
@@ -211,11 +297,13 @@ const Modal_Search = ({ modalVisible, setModalVisible }: props) => {
                 placeholder="Rechercher votre lieu..."
                 value={searchQuery}
                 onChangeText={setSearchQuery} // Saisir le texte pour la recherche
+                autoCorrect={false}
+                autoCapitalize="words"
               />
-              {/* iconce pour supprimer */}
+              {/* icone pour supprimer */}
 
               {searchQuery.length > 1 && (
-                <Pressable onPress={() => setSearchQuery("")}>
+                <Pressable onPress={() => setSearchQuery("")} hitSlop={8}>
                   <Entypo name="cross" size={24} color="black" />
                 </Pressable>
               )}
@@ -231,37 +319,36 @@ const Modal_Search = ({ modalVisible, setModalVisible }: props) => {
                   size={15}
                   color={Colors.primary}
                 />
-                <Text>Utiliser ma localisation actuelle</Text>
+                <Text style={styles.locationText}>Utiliser ma localisation actuelle</Text>
               </Pressable>
             )}
 
             {/* Afficher les suggestions */}
             {loading ? (
-              <Text>Chargement...</Text> // Indicateur de chargement
+              <View style={styles.loadingContainer}>
+                <ActivityIndicator size="small" color={Colors.primary} />
+                <Text style={styles.loadingText}>Recherche en cours...</Text>
+              </View>
             ) : (
-              <FlatList
-                data={citySuggestions}
-                keyExtractor={(item) => item.id.toString()}
-                renderItem={({ item }) => (
-                  <Pressable
-                    style={styles.suggestionItem}
-                    onPress={() =>
-                      handleCitySelect({
-                        city: item.city,
-                        region: item.region,
-                        country: item.country,
-                        latitude: item.latitude,
-                        longitude: item.longitude,
-                      })
-                    } // Passer toutes les informations
-                  >
-                    <EvilIcons name="location" size={20} color={Colors.dark} />
-                    <Text>
-                      {item.city}, {item.region}, {item.country},
-                    </Text>
-                  </Pressable>
-                )}
-              />
+              citySuggestions.length > 0 && (
+                <FlatList
+                  data={citySuggestions}
+                  keyExtractor={(item) => item.place_id.toString()}
+                  renderItem={({ item }) => (
+                    <Pressable
+                      style={styles.suggestionItem}
+                      onPress={() => handleCitySelect(item)}
+                    >
+                      <EvilIcons name="location" size={20} color={Colors.dark} />
+                      <Text style={styles.suggestionText} numberOfLines={2}>
+                        {formatDisplayName(item)}
+                      </Text>
+                    </Pressable>
+                  )}
+                  showsVerticalScrollIndicator={false}
+                  keyboardShouldPersistTaps="handled"
+                />
+              )
             )}
           </View>
         </View>
@@ -310,10 +397,34 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
   },
 
+  locationText: {
+    fontSize: 16,
+    color: Colors.primary,
+  },
+
   suggestionItem: {
     flexDirection: "row",
+    alignItems: "center",
+    gap: 10,
     paddingVertical: 15,
     borderBottomWidth: 0.2,
     borderColor: Colors.dark,
+  },
+
+  suggestionText: {
+    flex: 1,
+    fontSize: 16,
+  },
+
+  loadingContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 10,
+    paddingVertical: 10,
+  },
+
+  loadingText: {
+    fontSize: 14,
+    color: Colors.dark,
   },
 });

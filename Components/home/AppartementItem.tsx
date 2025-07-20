@@ -7,12 +7,14 @@ import FontAwesome5 from "@expo/vector-icons/FontAwesome5";
 import { Colors } from "../Colors";
 import { Image } from "expo-image";
 import { AnnonceType } from "@/assets/Types/type";
+import { useRouter } from "expo-router";
 
 type props = {
   item: AnnonceType;
 };
 
 const AppartementItem = ({ item }: props) => {
+     const router = useRouter();
   return (
     <View style={styles.container_appart}>
       {/* Section Image */}
@@ -71,12 +73,13 @@ const AppartementItem = ({ item }: props) => {
         </View>
       </View>
 
+
       {/* Visite virtuelle section */}
 
       <View style={styles.container_virtuelle}>
         <Pressable
           style={styles.button_virtuelle}
-          onPress={() => alert("tu as clique ")}
+          onPress={() => router.push('/annonces/VirtualTour')}
         >
           <MaterialCommunityIcons
             name="camera-marker-outline"
