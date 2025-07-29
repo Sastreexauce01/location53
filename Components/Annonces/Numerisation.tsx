@@ -8,12 +8,21 @@ import {
   TouchableOpacity,
   Image,
   Alert,
+  TextInput,
 } from "react-native";
 
 import Ionicons from "@expo/vector-icons/Ionicons";
-import * as ImagePicker from 'expo-image-picker';
+import * as ImagePicker from "expo-image-picker";
 import { Colors } from "../Colors";
 import Panorama_captures from "./Panorama_captures";
+import { SimpleLineIcons } from "@expo/vector-icons";
+import VirtualTour from "@/app/annonces/VirtualTour";
+
+type ImageMetadata = {
+  uri: string;
+  title: string;
+  description: string;
+};
 
 type props = {
   visible: boolean;
@@ -23,9 +32,21 @@ type props = {
 const Numerisation = ({ visible, setVisible }: props) => {
   const [cameraVisible, setCameraVisible] = useState(false);
   const [optionsModalVisible, setOptionsModalVisible] = useState(false);
-  const [selectedImages, setSelectedImages] = useState<string[]>([]);
+  const [selectedImages, setSelectedImages] = useState<ImageMetadata[]>([]);
   const [previewModalVisible, setPreviewModalVisible] = useState(false);
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);
+  const [editModalVisible, setEditModalVisible] = useState(false);
+  const [editingImageIndex, setEditingImageIndex] = useState(0);
+  const [tempTitle, setTempTitle] = useState("");
+  const [tempDescription, setTempDescription] = useState("");
+
+  const handleImageLoad = () => {
+    console.log('Image 360° chargée avec succès !');
+  };
+
+  const handleImageError = (error: string) => {
+    console.error('Erreur de chargement:', error);
+  };
 
   const handleCameraPress = () => {
     setOptionsModalVisible(true);
@@ -41,13 +62,34 @@ const Numerisation = ({ visible, setVisible }: props) => {
     setPreviewModalVisible(true);
   };
 
+  const handleImageOptions = (index: number) => {
+    setEditingImageIndex(index);
+    setTempTitle(selectedImages[index].title);
+    setTempDescription(selectedImages[index].description);
+    setEditModalVisible(true);
+  };
+
+  const saveImageMetadata = () => {
+    setSelectedImages((prev) =>
+      prev.map((img, index) =>
+        index === editingImageIndex
+          ? { ...img, title: tempTitle, description: tempDescription }
+          : img
+      )
+    );
+    console.log("image 0", selectedImages[0]);
+    setEditModalVisible(false);
+    setTempTitle("");
+    setTempDescription("");
+  };
+
   const requestPermission = async () => {
     const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
-    if (status !== 'granted') {
+    if (status !== "granted") {
       Alert.alert(
-        'Permission requise',
-        'Nous avons besoin de l\'autorisation pour accéder à votre galerie.',
-        [{ text: 'OK' }]
+        "Permission requise",
+        "Nous avons besoin de l'autorisation pour accéder à votre galerie.",
+        [{ text: "OK" }]
       );
       return false;
     }
@@ -56,35 +98,42 @@ const Numerisation = ({ visible, setVisible }: props) => {
 
   const handleGalleryOption = async () => {
     setOptionsModalVisible(false);
-    
+
     const hasPermission = await requestPermission();
     if (!hasPermission) return;
 
     try {
       const result = await ImagePicker.launchImageLibraryAsync({
-        mediaTypes: ImagePicker.MediaTypeOptions.Images,
+        mediaTypes: ["images"],
         allowsMultipleSelection: true,
         quality: 1,
-        aspect: [2, 1], // Format panoramique pour images 360°
+        aspect: [2, 1],
         allowsEditing: false,
       });
 
       if (!result.canceled && result.assets) {
-        const newImages = result.assets.map(asset => asset.uri);
-        setSelectedImages(prev => [...prev, ...newImages]);
+        const newImages = result.assets.map((asset, index) => ({
+          uri: asset.uri,
+          title: `Scène ${selectedImages.length + index + 1}`,
+          description: "",
+        }));
+        setSelectedImages((prev) => [...prev, ...newImages]);
+        console.log(selectedImages);
       }
     } catch (error) {
       Alert.alert(
-        'Erreur',
-        'Une erreur est survenue lors de la sélection des images.',
-        [{ text: 'OK' }]
+        "Erreur",
+        "Une erreur est survenue lors de la sélection des images.",
+        [{ text: "OK" }]
       );
-      console.error('Erreur lors de la sélection:', error);
+      console.error("Erreur lors de la sélection:", error);
     }
   };
 
   const removeImage = (indexToRemove: number) => {
-    setSelectedImages(prev => prev.filter((_, index) => index !== indexToRemove));
+    setSelectedImages((prev) =>
+      prev.filter((_, index) => index !== indexToRemove)
+    );
   };
 
   const renderSelectedImages = () => {
@@ -92,33 +141,48 @@ const Numerisation = ({ visible, setVisible }: props) => {
 
     return (
       <View style={styles.imagesPreviewContainer}>
-        <Text style={styles.previewTitle}>Images 360° sélectionnées ({selectedImages.length})</Text>
+        <Text style={styles.previewTitle}>
+          Images 360° sélectionnées ({selectedImages.length})
+        </Text>
         <View style={styles.imagesGrid}>
-          {selectedImages.map((imageUri, index) => (
+          {selectedImages.map((imageData, index) => (
             <View key={index} style={styles.imagePreviewWrapper}>
-              <TouchableOpacity 
+              <TouchableOpacity
                 onPress={() => handleImagePress(index)}
                 style={styles.imageContainer}
               >
-                <Image source={{ uri: imageUri }} style={styles.imagePreview} />
+                <Image
+                  source={{ uri: imageData.uri }}
+                  style={styles.imagePreview}
+                />
                 <View style={styles.imageIndex}>
                   <Text style={styles.imageIndexText}>{index + 1}</Text>
                 </View>
               </TouchableOpacity>
+
+              {/* Bouton d'options pour les modifications */}
               <TouchableOpacity
-                style={styles.removeButton}
-                onPress={() => removeImage(index)}
+                style={styles.optionsButton}
+                onPress={() => handleImageOptions(index)}
               >
-                <Ionicons name="close-circle" size={24} color="#ff4444" />
+                <SimpleLineIcons
+                  name="options-vertical"
+                  size={16}
+                  color="#666"
+                />
               </TouchableOpacity>
+
               <View style={styles.imageName}>
-                <Text style={styles.imageNameText}>Scène {index + 1}</Text>
+                <Text style={styles.imageNameText} numberOfLines={1}>
+                  {imageData.title || `Scène ${index + 1}`}
+                </Text>
               </View>
             </View>
           ))}
+
           {/* Bouton pour ajouter plus d'images */}
           <View style={styles.imagePreviewWrapper}>
-            <TouchableOpacity 
+            <TouchableOpacity
               style={styles.addMoreButton}
               onPress={handleGalleryOption}
             >
@@ -140,15 +204,22 @@ const Numerisation = ({ visible, setVisible }: props) => {
         </Pressable>
 
         <Text style={styles.title} numberOfLines={1} ellipsizeMode="tail">
-          Sans tittre
+          Sans titre
         </Text>
-        <TouchableOpacity 
-          style={[styles.button, selectedImages.length === 0 && styles.buttonDisabled]} 
-          onPress={() => selectedImages.length > 0 && console.log("Charger les images")}
+        <TouchableOpacity
+          style={[
+            styles.button,
+            selectedImages.length === 0 && styles.buttonDisabled,
+          ]}
+          onPress={() =>
+            selectedImages.length > 0 && console.log("Charger les images")
+          }
           disabled={selectedImages.length === 0}
         >
           <Text style={styles.buttonText}>
-            {selectedImages.length > 0 ? `Charger (${selectedImages.length})` : 'Charger'}
+            {selectedImages.length > 0
+              ? `Charger (${selectedImages.length})`
+              : "Charger"}
           </Text>
         </TouchableOpacity>
       </View>
@@ -161,9 +232,9 @@ const Numerisation = ({ visible, setVisible }: props) => {
           <View style={styles.emptyStateContainer}>
             <Ionicons name="camera-outline" size={64} color="#ccc" />
             <Text style={styles.instructionText}>
-              Vos numérisations apparaîtront ici. Appuyez sur le bouton de la caméra
-              pour commencer à numériser avec votre iPhone ou sélectionnez des
-              images 360° depuis votre galerie
+              Vos numérisations apparaîtront ici. Appuyez sur le bouton de la
+              caméra pour commencer à numériser avec votre iPhone ou
+              sélectionnez des images 360° depuis votre galerie
             </Text>
           </View>
         )}
@@ -178,11 +249,11 @@ const Numerisation = ({ visible, setVisible }: props) => {
         </Pressable>
       </View>
 
-      {/* Modal d'options */}
+      {/* Modal d'options (Caméra/Galerie) */}
       <Modal
         visible={optionsModalVisible}
         transparent={true}
-        animationType="fade"
+        animationType="slide"
         onRequestClose={() => setOptionsModalVisible(false)}
       >
         <TouchableOpacity
@@ -190,7 +261,7 @@ const Numerisation = ({ visible, setVisible }: props) => {
           onPress={() => setOptionsModalVisible(false)}
           activeOpacity={1}
         >
-          <TouchableOpacity 
+          <TouchableOpacity
             style={styles.optionsModal}
             activeOpacity={1}
             onPress={(e) => e.stopPropagation()}
@@ -225,35 +296,124 @@ const Numerisation = ({ visible, setVisible }: props) => {
         </TouchableOpacity>
       </Modal>
 
-      {/* Modal de prévisualisation simple */}
+      {/* Modal d'édition (titre, description, supprimer) */}
       <Modal
-        visible={previewModalVisible}
+        visible={editModalVisible}
         transparent={true}
-        animationType="fade"
-        onRequestClose={() => setPreviewModalVisible(false)}
+        animationType="slide"
+        onRequestClose={() => setEditModalVisible(false)}
       >
-        <View style={styles.previewModalOverlay}>
-          <View style={styles.previewModalContainer}>
-            <View style={styles.previewHeader}>
-              <Text style={styles.previewModalTitle}>
-                Scène {selectedImageIndex + 1} / {selectedImages.length}
-              </Text>
-              <TouchableOpacity
-                style={styles.closePreviewButton}
-                onPress={() => setPreviewModalVisible(false)}
-              >
-                <Ionicons name="close" size={24} color="white" />
+        <TouchableOpacity
+          style={styles.modalOverlay}
+          onPress={() => setEditModalVisible(false)}
+          activeOpacity={1}
+        >
+          <TouchableOpacity
+            style={styles.editModal}
+            activeOpacity={1}
+            onPress={(e) => e.stopPropagation()}
+          >
+            <View style={styles.editHeader}>
+              <Text style={styles.editModalTitle}>Modifier l&lsquo;image</Text>
+              <TouchableOpacity onPress={() => setEditModalVisible(false)}>
+                <Ionicons name="close" size={24} color="#666" />
               </TouchableOpacity>
             </View>
-            
-            <View style={styles.previewImageContainer}>
-              <Image 
-                source={{ uri: selectedImages[selectedImageIndex] }} 
-                style={styles.previewImage}
-                resizeMode="contain"
+
+            <View style={styles.editImagePreview}>
+              <Image
+                source={{ uri: selectedImages[editingImageIndex]?.uri }}
+                style={styles.editPreviewImage}
               />
             </View>
 
+            <View style={styles.editForm}>
+              <Text style={styles.inputLabel}>Titre</Text>
+              <TextInput
+                style={styles.textInput}
+                value={tempTitle}
+                onChangeText={setTempTitle}
+                placeholder="Nom de la scène"
+                placeholderTextColor="#999"
+              />
+
+              <Text style={styles.inputLabel}>Description</Text>
+              <TextInput
+                style={[styles.textInput, styles.textArea]}
+                value={tempDescription}
+                onChangeText={setTempDescription}
+                placeholder="Description de la scène (optionnel)"
+                placeholderTextColor="#999"
+                multiline={true}
+                numberOfLines={3}
+                textAlignVertical="top"
+              />
+            </View>
+
+            <View style={styles.editActions}>
+              <TouchableOpacity
+                style={styles.deleteButtonEdit}
+                onPress={() => {
+                  removeImage(editingImageIndex);
+                  setEditModalVisible(false);
+                }}
+              >
+                <Ionicons name="trash" size={20} color="#ff4444" />
+                <Text style={styles.deleteButtonTextEdit}>Supprimer</Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={styles.saveButton}
+                onPress={saveImageMetadata}
+              >
+                <Text style={styles.saveButtonText}>Enregistrer</Text>
+              </TouchableOpacity>
+            </View>
+          </TouchableOpacity>
+        </TouchableOpacity>
+      </Modal>
+
+      {/* Modal de prévisualisation */}
+      <Modal
+        visible={previewModalVisible}
+        transparent={false}
+        animationType="fade"
+        onRequestClose={() => setPreviewModalVisible(false)}
+      >
+        <View style={styles.previewModalContainer}>
+          {/* Header avec fermeture */}
+          <View style={styles.previewHeader}>
+            <View style={styles.previewTitleContainer}>
+              <Text style={styles.previewModalTitle}>
+                {selectedImages[selectedImageIndex]?.title || `Scène ${selectedImageIndex + 1}`}
+              </Text>
+              <Text style={styles.previewModalSubtitle}>
+                {selectedImageIndex + 1} / {selectedImages.length}
+              </Text>
+            </View>
+            <TouchableOpacity
+              style={styles.closePreviewButton}
+              onPress={() => setPreviewModalVisible(false)}
+            >
+              <Ionicons name="close" size={24} color="white" />
+            </TouchableOpacity>
+          </View>
+
+          {/* Composant VirtualTour */}
+          <View style={styles.virtualTourContainer}>
+            
+            {selectedImages[selectedImageIndex] && (
+              <VirtualTour
+                imageMetadata={selectedImages[selectedImageIndex]}
+                showInfo={false}
+                onLoad={handleImageLoad}
+                onError={handleImageError}
+              />
+            )}
+          </View>
+
+          {/* Navigation en bas */}
+          {selectedImages.length > 1 && (
             <View style={styles.previewNavigation}>
               <TouchableOpacity
                 style={[styles.navButton, selectedImageIndex === 0 && styles.navButtonDisabled]}
@@ -267,7 +427,7 @@ const Numerisation = ({ visible, setVisible }: props) => {
                 <Ionicons 
                   name="chevron-back" 
                   size={24} 
-                  color={selectedImageIndex === 0 ? "#ccc" : "white"} 
+                  color={selectedImageIndex === 0 ? "#666" : "white"} 
                 />
                 <Text style={[styles.navButtonText, selectedImageIndex === 0 && styles.navButtonTextDisabled]}>
                   Précédent
@@ -275,18 +435,14 @@ const Numerisation = ({ visible, setVisible }: props) => {
               </TouchableOpacity>
 
               <TouchableOpacity
-                style={styles.deleteButton}
+                style={styles.editButtonPreview}
                 onPress={() => {
-                  removeImage(selectedImageIndex);
-                  if (selectedImages.length === 1) {
-                    setPreviewModalVisible(false);
-                  } else if (selectedImageIndex === selectedImages.length - 1) {
-                    setSelectedImageIndex(selectedImageIndex - 1);
-                  }
+                  setPreviewModalVisible(false);
+                  handleImageOptions(selectedImageIndex);
                 }}
               >
-                <Ionicons name="trash" size={20} color="#ff4444" />
-                <Text style={styles.deleteButtonText}>Supprimer</Text>
+                <Ionicons name="create" size={20} color={Colors.primary} />
+                <Text style={styles.editButtonPreviewText}>Modifier</Text>
               </TouchableOpacity>
 
               <TouchableOpacity
@@ -304,11 +460,11 @@ const Numerisation = ({ visible, setVisible }: props) => {
                 <Ionicons 
                   name="chevron-forward" 
                   size={24} 
-                  color={selectedImageIndex === selectedImages.length - 1 ? "#ccc" : "white"} 
+                  color={selectedImageIndex === selectedImages.length - 1 ? "#666" : "white"} 
                 />
               </TouchableOpacity>
             </View>
-          </View>
+          )}
         </View>
       </Modal>
 
@@ -328,7 +484,6 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: "blue",
   },
-
   head_container: {
     flexDirection: "row",
     justifyContent: "space-between",
@@ -337,7 +492,6 @@ const styles = StyleSheet.create({
     alignItems: "center",
     backgroundColor: "#ccc",
   },
-
   title: {
     fontSize: 16,
     fontWeight: "500",
@@ -346,7 +500,6 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     textAlign: "center",
   },
-
   button: {
     backgroundColor: Colors.primary,
     paddingVertical: 8,
@@ -354,30 +507,25 @@ const styles = StyleSheet.create({
     borderRadius: 100,
     alignItems: "center",
   },
-
   buttonDisabled: {
     backgroundColor: "#ccc",
   },
-
   buttonText: {
     color: "white",
     fontWeight: "600",
     fontSize: 14,
   },
-
   scenes_container: {
     flex: 1,
     flexDirection: "column",
     backgroundColor: "#f8f9fa",
     padding: 20,
   },
-
   emptyStateContainer: {
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
   },
-
   instructionText: {
     textAlign: "center",
     fontSize: 16,
@@ -390,47 +538,41 @@ const styles = StyleSheet.create({
   imagesPreviewContainer: {
     flex: 1,
   },
-
   previewTitle: {
     fontSize: 18,
     fontWeight: "600",
     color: "#333",
     marginBottom: 16,
   },
-
   imagesGrid: {
     flexDirection: "row",
     flexWrap: "wrap",
     justifyContent: "flex-start",
     gap: 12,
   },
-
   imagePreviewWrapper: {
-    width: "30%", // 3 colonnes avec des gaps
+    width: "30%",
     marginBottom: 12,
     position: "relative",
   },
-
   imageContainer: {
     position: "relative",
   },
-
   imagePreview: {
     width: "100%",
     height: 80,
     borderRadius: 8,
     backgroundColor: "#f0f0f0",
   },
-
-  removeButton: {
+  optionsButton: {
     position: "absolute",
-    top: -8,
+    top: -6,
     right: -8,
     backgroundColor: "white",
-    borderRadius: 12,
+    borderRadius: 40,
+    padding: 3,
     zIndex: 10,
   },
-
   imageIndex: {
     position: "absolute",
     top: 4,
@@ -440,25 +582,21 @@ const styles = StyleSheet.create({
     paddingHorizontal: 6,
     paddingVertical: 2,
   },
-
   imageIndexText: {
     color: "white",
     fontSize: 12,
     fontWeight: "600",
   },
-
   imageName: {
     marginTop: 4,
     alignItems: "center",
   },
-
   imageNameText: {
     fontSize: 12,
     color: "#666",
     fontWeight: "500",
     textAlign: "center",
   },
-
   addMoreButton: {
     width: "100%",
     height: 80,
@@ -470,7 +608,6 @@ const styles = StyleSheet.create({
     alignItems: "center",
     backgroundColor: "#f8f9fa",
   },
-
   addMoreText: {
     fontSize: 12,
     color: Colors.primary,
@@ -478,7 +615,6 @@ const styles = StyleSheet.create({
     marginTop: 4,
     textAlign: "center",
   },
-
   options_container: {
     flexDirection: "row",
     gap: 20,
@@ -487,7 +623,6 @@ const styles = StyleSheet.create({
     bottom: 50,
     right: "40%",
   },
-
   cercle_container: {
     height: 80,
     width: 80,
@@ -497,7 +632,6 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
   },
-
   cercle: {
     height: "95%",
     width: "95%",
@@ -507,13 +641,12 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
 
-  // Styles pour le modal d'options
+  // Styles pour le modal d'options (Caméra/Galerie)
   modalOverlay: {
     flex: 1,
     backgroundColor: "rgba(0, 0, 0, 0.5)",
     justifyContent: "flex-end",
   },
-
   optionsModal: {
     backgroundColor: "white",
     borderTopLeftRadius: 20,
@@ -521,7 +654,6 @@ const styles = StyleSheet.create({
     padding: 20,
     paddingBottom: 40,
   },
-
   modalTitle: {
     fontSize: 18,
     fontWeight: "600",
@@ -529,7 +661,6 @@ const styles = StyleSheet.create({
     marginBottom: 20,
     color: "#333",
   },
-
   optionButton: {
     flexDirection: "row",
     alignItems: "center",
@@ -539,7 +670,6 @@ const styles = StyleSheet.create({
     backgroundColor: "#f5f5f5",
     borderRadius: 10,
   },
-
   optionText: {
     fontSize: 16,
     marginLeft: 15,
@@ -547,111 +677,183 @@ const styles = StyleSheet.create({
     fontWeight: "500",
     flex: 1,
   },
-
   cancelButton: {
     marginTop: 10,
     paddingVertical: 15,
     alignItems: "center",
   },
-
   cancelText: {
     fontSize: 16,
     color: "#999",
     fontWeight: "500",
   },
 
-  // Styles pour le modal de prévisualisation
-  previewModalOverlay: {
-    flex: 1,
-    backgroundColor: "rgba(0, 0, 0, 0.9)",
-    justifyContent: "center",
-    alignItems: "center",
-  },
-
-  previewModalContainer: {
-    width: "90%",
-    height: "80%",
-    backgroundColor: "rgba(255, 255, 255, 0.1)",
-    borderRadius: 20,
+  // Styles pour le modal d'édition
+  editModal: {
+    backgroundColor: "white",
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+    maxHeight: "90%",
     padding: 20,
   },
-
-  previewHeader: {
+  editHeader: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
     marginBottom: 20,
   },
-
-  previewModalTitle: {
+  editModalTitle: {
     fontSize: 18,
     fontWeight: "600",
-    color: "white",
+    color: "#333",
   },
-
-  closePreviewButton: {
-    padding: 8,
-  },
-
-  previewImageContainer: {
-    flex: 1,
-    justifyContent: "center",
+  editImagePreview: {
     alignItems: "center",
     marginBottom: 20,
   },
-
-  previewImage: {
-    width: "100%",
-    height: "100%",
-    borderRadius: 12,
+  editPreviewImage: {
+    width: 120,
+    height: 80,
+    borderRadius: 8,
+    backgroundColor: "#f0f0f0",
   },
-
-  previewNavigation: {
+  editForm: {
+    marginBottom: 20,
+  },
+  inputLabel: {
+    fontSize: 16,
+    fontWeight: "600",
+    color: "#333",
+    marginBottom: 8,
+    marginTop: 12,
+  },
+  textInput: {
+    borderWidth: 1,
+    borderColor: "#ddd",
+    borderRadius: 8,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    fontSize: 16,
+    backgroundColor: "#fff",
+  },
+  textArea: {
+    height: 80,
+    textAlignVertical: "top",
+  },
+  editActions: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    paddingHorizontal: 10,
+    marginTop: 20,
   },
-
-  navButton: {
+  deleteButtonEdit: {
     flexDirection: "row",
     alignItems: "center",
-    paddingVertical: 10,
-    paddingHorizontal: 15,
-    backgroundColor: "rgba(255, 255, 255, 0.2)",
-    borderRadius: 20,
-    minWidth: 100,
-    justifyContent: "center",
-  },
-
-  navButtonDisabled: {
-    backgroundColor: "rgba(255, 255, 255, 0.1)",
-  },
-
-  navButtonText: {
-    color: "white",
-    fontWeight: "500",
-    marginHorizontal: 5,
-  },
-
-  navButtonTextDisabled: {
-    color: "#ccc",
-  },
-
-  deleteButton: {
-    flexDirection: "row",
-    alignItems: "center",
-    paddingVertical: 10,
-    paddingHorizontal: 15,
-    backgroundColor: "rgba(255, 68, 68, 0.2)",
-    borderRadius: 20,
+    paddingVertical: 12,
+    paddingHorizontal: 20,
+    backgroundColor: "#fff",
+    borderRadius: 8,
     borderWidth: 1,
     borderColor: "#ff4444",
   },
-
-  deleteButtonText: {
+  deleteButtonTextEdit: {
     color: "#ff4444",
     fontWeight: "500",
+    marginLeft: 8,
+  },
+  saveButton: {
+    backgroundColor: Colors.primary,
+    paddingVertical: 12,
+    paddingHorizontal: 24,
+    borderRadius: 8,
+    alignItems: "center",
+  },
+  saveButtonText: {
+    color: "white",
+    fontWeight: "600",
+    fontSize: 16,
+  },
+
+  // Styles pour le modal de prévisualisation
+  previewModalContainer: {
+    flex: 1,
+    backgroundColor: '#000',
+  },
+  previewHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: 20,
+    paddingTop: 50,
+    paddingBottom: 15,
+    backgroundColor: 'rgba(0, 0, 0, 0.9)',
+    zIndex: 1000,
+  },
+  previewTitleContainer: {
+    flex: 1,
+  },
+  previewModalTitle: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: 'white',
+  },
+  previewModalSubtitle: {
+    fontSize: 14,
+    color: '#ccc',
+    marginTop: 4,
+  },
+  closePreviewButton: {
+    padding: 8,
+    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+    borderRadius: 20,
+  },
+  virtualTourContainer: {
+    flex: 1,
+  },
+  previewNavigation: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: 20,
+    paddingVertical: 20,
+    backgroundColor: 'rgba(0, 0, 0, 0.9)',
+    borderTopWidth: 1,
+    borderTopColor: 'rgba(255, 255, 255, 0.1)',
+  },
+  navButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 10,
+    paddingHorizontal: 15,
+    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+    borderRadius: 20,
+    minWidth: 100,
+    justifyContent: 'center',
+  },
+  navButtonDisabled: {
+    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+  },
+  navButtonText: {
+    color: 'white',
+    fontWeight: '500',
+    marginHorizontal: 5,
+  },
+  navButtonTextDisabled: {
+    color: '#666',
+  },
+  editButtonPreview: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 10,
+    paddingHorizontal: 15,
+    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: Colors.primary,
+  },
+  editButtonPreviewText: {
+    color: Colors.primary,
+    fontWeight: '500',
     marginLeft: 5,
   },
 });

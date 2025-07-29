@@ -39,3 +39,27 @@ export type Scene360_Type = {
 };
 
 
+
+// Interface pour les métadonnées d'image 360°
+export interface ImageMetadata {
+  uri: string;        // URL ou chemin vers l'image 360°
+  title: string;      // Titre de l'image/lieu
+  description: string; // Description détaillée
+}
+
+// Props du composant VirtualTour
+export interface VirtualTourProps {
+  imageMetadata: ImageMetadata;
+  style?: import('react-native').ViewStyle;
+  showInfo?: boolean;
+  onLoad?: () => void;
+  onError?: (error: string) => void;
+}
+
+// Exemple d'utilisation avec plusieurs images
+export interface TourData {
+  id: string;
+  images: ImageMetadata[];
+  tourTitle: string;
+  tourDescription: string;
+}
