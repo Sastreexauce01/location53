@@ -8,7 +8,7 @@ import {
 } from "react-native";
 import { Colors } from "../Colors";
 import { ImageBackground } from "expo-image";
-import Numerisation from "./Numerisation";
+import Numerisation from "./Virtual360/Numerisation";
 
 const VirtualSpace_CreateAnnonce = () => {
   const [isLoading, setIsloading] = useState(true);

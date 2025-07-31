@@ -1,21 +1,88 @@
 [
   {
     "id": 1,
-    "nomAnnonce": "Appartement moderne centre ville piscine à la campagne  ",
+    "nomAnnonce": "Appartement moderne centre ville",
     "typeAnnonce": "Location",
     "categorie": "Appartement",
     "description": "Magnifique appartement moderne avec vue imprenable sur la ville. Dispose de 2 chambres spacieuses, une cuisine équipée, un salon lumineux et un balcon. Proche des commerces, écoles et transports. Idéal pour une famille ou un couple cherchant confort et proximité aux commodités.",
-    "image": ["https://res.cloudinary.com/dait4sfc5/image/upload/v1740654071/3d-contemporary-living-room-interior-modern-furniture_axav0n.jpg",
-        "https://res.cloudinary.com/dait4sfc5/image/upload/v1740653989/bangkok-thailand-august-12-2016-beautiful-luxury-living-room_zsc6ui.jpg",
-        "https://res.cloudinary.com/dait4sfc5/image/upload/v1740653948/empty-flat-interrior-with-elements-decoration_nbswbt.jpg",
-        "https://res.cloudinary.com/dait4sfc5/image/upload/v1740577493/3d-rendering-loft-luxury-living-room-with-bookshelf_puzurc.jpg"],
+    "image": [
+      "https://res.cloudinary.com/dait4sfc5/image/upload/v1740654071/3d-contemporary-living-room-interior-modern-furniture_axav0n.jpg",
+      "https://res.cloudinary.com/dait4sfc5/image/upload/v1740653989/bangkok-thailand-august-12-2016-beautiful-luxury-living-room_zsc6ui.jpg",
+      "https://res.cloudinary.com/dait4sfc5/image/upload/v1740653948/empty-flat-interrior-with-elements-decoration_nbswbt.jpg"
+    ],
     "adresse": "10 Rue des Lilas, Paris",
     "coordonnee": { "latitude": 48.8566, "longitude": 2.3522 },
     "prix": 1200,
     "nbre_chambre": 2,
     "nbre_salle_bains": 1,
     "accessibilite": ["Ascenseur", "Parking", "Wifi"],
-    "virtualSpace": "virtual_space1.mp4",
+    "virtualSpace": [
+      {
+        "id": "salon_001",
+        "uri": "https://gnh97h9v3c.ufs.sh/f/LUi1c9wqAJMG2ELdJs8BsgvCqbN1LSjRVWkKZPc7dhwFr869",
+        "title": "Salon principal",
+        "description": "Grand salon lumineux avec vue sur jardin",
+        "hotspots": [
+          {
+            "id": "hotspot_001",
+            "yaw": 1.57,
+            "pitch": 0,
+            "type": "scene",
+            "title": "Vers la cuisine",
+            "targetSceneId": "cuisine_001"
+          }
+        ],
+        "initialYaw": 0,
+        "initialPitch": 0,
+        "initialFov": 75
+      },
+      {
+        "id": "cuisine_001",
+        "uri": "https://gnh97h9v3c.ufs.sh/f/LUi1c9wqAJMGFICYqgaHltiyCrLU0VTSs4qXgmAOo7WZ2fcj",
+        "title": "Cuisine équipée",
+        "description": "Cuisine moderne entièrement équipée",
+        "hotspots": [
+          {
+            "id": "hotspot_002",
+            "yaw": -1.57,
+            "pitch": 0,
+            "type": "scene",
+            "title": "Retour au salon",
+            "targetSceneId": "salon_001"
+          },
+          {
+            "id": "hotspot_003",
+            "yaw": 0,
+            "pitch": 0,
+            "type": "scene",
+            "title": "Vers la chambre",
+            "targetSceneId": "chambre_001"
+          }
+        ],
+        "initialYaw": 0,
+        "initialPitch": 0,
+        "initialFov": 75
+      },
+      {
+        "id": "chambre_001",
+        "uri": "https://gnh97h9v3c.ufs.sh/f/LUi1c9wqAJMGpaFy2InjhFVr1S2QDTgwi8yeJlRpYNIu6MLX",
+        "title": "Chambre principale",
+        "description": "Chambre spacieuse avec dressing",
+        "hotspots": [
+          {
+            "id": "hotspot_004",
+            "yaw": 3.14,
+            "pitch": 0,
+            "type": "scene",
+            "title": "Vers la cuisine",
+            "targetSceneId": "cuisine_001"
+          }
+        ],
+        "initialYaw": 0,
+        "initialPitch": 0,
+        "initialFov": 75
+      }
+    ],
     "date_creation": "2024-03-30T10:00:00Z",
     "id_agent": "agent_001"
   },
@@ -24,18 +91,58 @@
     "nomAnnonce": "Villa avec piscine à la campagne",
     "typeAnnonce": "Vente",
     "categorie": "Maison",
-    "description": "Superbe villa en pleine nature avec piscine privée et grand jardin arboré. Comprend 4 chambres, 3 salles de bain, un vaste séjour avec cheminée, une cuisine moderne et une terrasse panoramique. Parfait pour ceux qui recherchent calme et confort.",
-    "image": ["https://res.cloudinary.com/dait4sfc5/image/upload/v1740653989/bangkok-thailand-august-12-2016-beautiful-luxury-living-room_zsc6ui.jpg",
+    "description": "Superbe villa en pleine nature avec piscine privée et grand jardin arboré. Comprend 4 chambres, 3 salles de bain, un vaste séjour avec cheminée, une cuisine moderne et une terrasse panoramique.",
+    "image": [
+      "https://res.cloudinary.com/dait4sfc5/image/upload/v1740653989/bangkok-thailand-august-12-2016-beautiful-luxury-living-room_zsc6ui.jpg",
       "https://res.cloudinary.com/dait4sfc5/image/upload/v1740654071/3d-contemporary-living-room-interior-modern-furniture_axav0n.jpg",
-        "https://res.cloudinary.com/dait4sfc5/image/upload/v1740653948/empty-flat-interrior-with-elements-decoration_nbswbt.jpg",
-        "https://res.cloudinary.com/dait4sfc5/image/upload/v1740577493/3d-rendering-loft-luxury-living-room-with-bookshelf_puzurc.jpg"],
+      "https://res.cloudinary.com/dait4sfc5/image/upload/v1740653948/empty-flat-interrior-with-elements-decoration_nbswbt.jpg"
+    ],
     "adresse": "45 Chemin des Oliviers, Nice",
     "coordonnee": { "latitude": 43.7102, "longitude": 7.262 },
     "prix": 650000,
     "nbre_chambre": 4,
     "nbre_salle_bains": 3,
     "accessibilite": ["Piscine", "Jardin", "Garage"],
-    "virtualSpace": "virtual_space2.mp4",
+    "virtualSpace": [
+      {
+        "id": "sejour_002",
+        "uri": "https://gnh97h9v3c.ufs.sh/f/LUi1c9wqAJMG2ELdJs8BsgvCqbN1LSjRVWkKZPc7dhwFr869",
+        "title": "Séjour avec cheminée",
+        "description": "Vaste séjour avec cheminée et vue sur jardin",
+        "hotspots": [
+          {
+            "id": "hotspot_005",
+            "yaw": 0.78,
+            "pitch": 0,
+            "type": "scene",
+            "title": "Vers la cuisine",
+            "targetSceneId": "cuisine_002"
+          }
+        ],
+        "initialYaw": 0,
+        "initialPitch": 0,
+        "initialFov": 75
+      },
+      {
+        "id": "cuisine_002",
+        "uri": "https://gnh97h9v3c.ufs.sh/f/LUi1c9wqAJMGFICYqgaHltiyCrLU0VTSs4qXgmAOo7WZ2fcj",
+        "title": "Cuisine moderne",
+        "description": "Cuisine spacieuse avec îlot central",
+        "hotspots": [
+          {
+            "id": "hotspot_006",
+            "yaw": -0.78,
+            "pitch": 0,
+            "type": "scene",
+            "title": "Retour au séjour",
+            "targetSceneId": "sejour_002"
+          }
+        ],
+        "initialYaw": 0,
+        "initialPitch": 0,
+        "initialFov": 75
+      }
+    ],
     "date_creation": "2024-03-28T15:30:00Z",
     "id_agent": "agent_002"
   },
@@ -44,39 +151,88 @@
     "nomAnnonce": "Studio meublé proche université",
     "typeAnnonce": "Location",
     "categorie": "Studio",
-    "description": "Studio cosy entièrement meublé, idéal pour étudiant ou jeune actif. Situé à 5 min à pied de l'université et des transports en commun. Dispose d’une kitchenette équipée, salle de bain privative et connexion Wi-Fi incluse.",
-    "image": [ 
-              "https://res.cloudinary.com/dait4sfc5/image/upload/v1740653948/empty-flat-interrior-with-elements-decoration_nbswbt.jpg",
-"https://res.cloudinary.com/dait4sfc5/image/upload/v1740654071/3d-contemporary-living-room-interior-modern-furniture_axav0n.jpg",
-        "https://res.cloudinary.com/dait4sfc5/image/upload/v1740653989/bangkok-thailand-august-12-2016-beautiful-luxury-living-room_zsc6ui.jpg",
-        "https://res.cloudinary.com/dait4sfc5/image/upload/v1740577493/3d-rendering-loft-luxury-living-room-with-bookshelf_puzurc.jpg"],
+    "description": "Studio cosy entièrement meublé, idéal pour étudiant ou jeune actif. Situé à 5 min à pied de l'université et des transports en commun.",
+    "image": [
+      "https://res.cloudinary.com/dait4sfc5/image/upload/v1740653948/empty-flat-interrior-with-elements-decoration_nbswbt.jpg",
+      "https://res.cloudinary.com/dait4sfc5/image/upload/v1740654071/3d-contemporary-living-room-interior-modern-furniture_axav0n.jpg"
+    ],
     "adresse": "22 Avenue des Étudiants, Lyon",
     "coordonnee": { "latitude": 45.764, "longitude": 4.8357 },
     "prix": 550,
     "nbre_chambre": 1,
     "nbre_salle_bains": 1,
     "accessibilite": ["Wifi", "Meublé", "Proximité transport"],
-    "virtualSpace": "virtual_space3.mp4",
+    "virtualSpace": [
+      {
+        "id": "studio_003",
+        "uri": "https://gnh97h9v3c.ufs.sh/f/LUi1c9wqAJMGpaFy2InjhFVr1S2QDTgwi8yeJlRpYNIu6MLX",
+        "title": "Studio principal",
+        "description": "Espace de vie optimisé avec coin nuit",
+        "hotspots": [],
+        "initialYaw": 0,
+        "initialPitch": 0,
+        "initialFov": 75
+      }
+    ],
     "date_creation": "2024-03-25T09:00:00Z",
     "id_agent": "agent_003"
   },
   {
     "id": 4,
-    "nomAnnonce": "Loft design avec",
+    "nomAnnonce": "Loft design avec terrasse",
     "typeAnnonce": "Vente",
     "categorie": "Loft",
-    "description": "Magnifique loft contemporain avec grande baie vitrée et terrasse privative. Cuisine ouverte, salon spacieux et mezzanine avec chambre. Situé dans un quartier dynamique, proche des commerces et transports. Idéal pour amateur d’architecture moderne.",
-    "image": ["https://res.cloudinary.com/dait4sfc5/image/upload/v1740654071/3d-contemporary-living-room-interior-modern-furniture_axav0n.jpg",
-        "https://res.cloudinary.com/dait4sfc5/image/upload/v1740653989/bangkok-thailand-august-12-2016-beautiful-luxury-living-room_zsc6ui.jpg",
-        "https://res.cloudinary.com/dait4sfc5/image/upload/v1740653948/empty-flat-interrior-with-elements-decoration_nbswbt.jpg",
-        "https://res.cloudinary.com/dait4sfc5/image/upload/v1740577493/3d-rendering-loft-luxury-living-room-with-bookshelf_puzurc.jpg"],
+    "description": "Magnifique loft contemporain avec grande baie vitrée et terrasse privative. Cuisine ouverte, salon spacieux et mezzanine avec chambre.",
+    "image": [
+      "https://res.cloudinary.com/dait4sfc5/image/upload/v1740654071/3d-contemporary-living-room-interior-modern-furniture_axav0n.jpg",
+      "https://res.cloudinary.com/dait4sfc5/image/upload/v1740653989/bangkok-thailand-august-12-2016-beautiful-luxury-living-room_zsc6ui.jpg"
+    ],
     "adresse": "5 Boulevard Haussmann, Paris",
     "coordonnee": { "latitude": 48.8708, "longitude": 2.332 },
     "prix": 480000,
     "nbre_chambre": 1,
     "nbre_salle_bains": 1,
     "accessibilite": ["Terrasse", "Ascenseur", "Proximité centre-ville"],
-    "virtualSpace": "virtual_space4.mp4",
+    "virtualSpace": [
+      {
+        "id": "loft_004",
+        "uri": "https://gnh97h9v3c.ufs.sh/f/LUi1c9wqAJMG2ELdJs8BsgvCqbN1LSjRVWkKZPc7dhwFr869",
+        "title": "Loft principal",
+        "description": "Espace ouvert avec cuisine et salon",
+        "hotspots": [
+          {
+            "id": "hotspot_007",
+            "yaw": 2.35,
+            "pitch": 0.52,
+            "type": "scene",
+            "title": "Vers la mezzanine",
+            "targetSceneId": "mezzanine_004"
+          }
+        ],
+        "initialYaw": 0,
+        "initialPitch": 0,
+        "initialFov": 75
+      },
+      {
+        "id": "mezzanine_004",
+        "uri": "https://gnh97h9v3c.ufs.sh/f/LUi1c9wqAJMGFICYqgaHltiyCrLU0VTSs4qXgmAOo7WZ2fcj",
+        "title": "Mezzanine chambre",
+        "description": "Espace nuit en mezzanine",
+        "hotspots": [
+          {
+            "id": "hotspot_008",
+            "yaw": -2.35,
+            "pitch": -0.52,
+            "type": "scene",
+            "title": "Retour au loft",
+            "targetSceneId": "loft_004"
+          }
+        ],
+        "initialYaw": 0,
+        "initialPitch": 0,
+        "initialFov": 75
+      }
+    ],
     "date_creation": "2024-03-20T14:45:00Z",
     "id_agent": "agent_004"
   },
@@ -85,15 +241,100 @@
     "nomAnnonce": "Maison familiale avec grand jardin",
     "typeAnnonce": "Vente",
     "categorie": "Maison",
-    "description": "Grande maison familiale située dans un quartier résidentiel calme. Comprend 5 chambres, 2 salles de bain, une cuisine équipée et un grand séjour lumineux. Jardin clôturé parfait pour enfants et animaux. Proche des écoles et commerces.",
-    "image": ["https://res.cloudinary.com/dait4sfc5/image/upload/v1740681200/villa-house-model-key-drawing-retro-desktop-real-estate-sale-concept_pzvxks.jpg", "maison2.jpg"],
+    "description": "Grande maison familiale située dans un quartier résidentiel calme. Comprend 5 chambres, 2 salles de bain, une cuisine équipée et un grand séjour lumineux.",
+    "image": [
+      "https://res.cloudinary.com/dait4sfc5/image/upload/v1740681200/villa-house-model-key-drawing-retro-desktop-real-estate-sale-concept_pzvxks.jpg",
+      "https://res.cloudinary.com/dait4sfc5/image/upload/v1740653989/bangkok-thailand-august-12-2016-beautiful-luxury-living-room_zsc6ui.jpg"
+    ],
     "adresse": "12 Allée des Chênes, Bordeaux",
     "coordonnee": { "latitude": 44.8378, "longitude": -0.5792 },
     "prix": 375000,
     "nbre_chambre": 5,
     "nbre_salle_bains": 2,
     "accessibilite": ["Jardin", "Garage", "Proximité écoles"],
-    "virtualSpace": "virtual_space5.mp4",
+    "virtualSpace": [
+      {
+        "id": "entree_005",
+        "uri": "https://gnh97h9v3c.ufs.sh/f/LUi1c9wqAJMG2ELdJs8BsgvCqbN1LSjRVWkKZPc7dhwFr869",
+        "title": "Entrée principale",
+        "description": "Hall d'entrée spacieux",
+        "hotspots": [
+          {
+            "id": "hotspot_009",
+            "yaw": 0,
+            "pitch": 0,
+            "type": "scene",
+            "title": "Vers le salon",
+            "targetSceneId": "salon_005"
+          },
+          {
+            "id": "hotspot_010",
+            "yaw": 1.57,
+            "pitch": 0,
+            "type": "scene",
+            "title": "Vers la cuisine",
+            "targetSceneId": "cuisine_005"
+          }
+        ],
+        "initialYaw": 0,
+        "initialPitch": 0,
+        "initialFov": 75
+      },
+      {
+        "id": "salon_005",
+        "uri": "https://gnh97h9v3c.ufs.sh/f/LUi1c9wqAJMGFICYqgaHltiyCrLU0VTSs4qXgmAOo7WZ2fcj",
+        "title": "Grand séjour",
+        "description": "Salon familial lumineux",
+        "hotspots": [
+          {
+            "id": "hotspot_011",
+            "yaw": 3.14,
+            "pitch": 0,
+            "type": "scene",
+            "title": "Retour à l'entrée",
+            "targetSceneId": "entree_005"
+          },
+          {
+            "id": "hotspot_012",
+            "yaw": -1.57,
+            "pitch": 0,
+            "type": "scene",
+            "title": "Vers la cuisine",
+            "targetSceneId": "cuisine_005"
+          }
+        ],
+        "initialYaw": 0,
+        "initialPitch": 0,
+        "initialFov": 75
+      },
+      {
+        "id": "cuisine_005",
+        "uri": "https://gnh97h9v3c.ufs.sh/f/LUi1c9wqAJMGpaFy2InjhFVr1S2QDTgwi8yeJlRpYNIu6MLX",
+        "title": "Cuisine familiale",
+        "description": "Grande cuisine équipée avec coin repas",
+        "hotspots": [
+          {
+            "id": "hotspot_013",
+            "yaw": -1.57,
+            "pitch": 0,
+            "type": "scene",
+            "title": "Vers l'entrée",
+            "targetSceneId": "entree_005"
+          },
+          {
+            "id": "hotspot_014",
+            "yaw": 1.57,
+            "pitch": 0,
+            "type": "scene",
+            "title": "Vers le salon",
+            "targetSceneId": "salon_005"
+          }
+        ],
+        "initialYaw": 0,
+        "initialPitch": 0,
+        "initialFov": 75
+      }
+    ],
     "date_creation": "2024-03-18T11:20:00Z",
     "id_agent": "agent_005"
   }

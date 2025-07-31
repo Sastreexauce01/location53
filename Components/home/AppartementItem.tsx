@@ -14,7 +14,7 @@ type props = {
 };
 
 const AppartementItem = ({ item }: props) => {
-     const router = useRouter();
+  const router = useRouter();
   return (
     <View style={styles.container_appart}>
       {/* Section Image */}
@@ -73,13 +73,17 @@ const AppartementItem = ({ item }: props) => {
         </View>
       </View>
 
-
       {/* Visite virtuelle section */}
 
       <View style={styles.container_virtuelle}>
         <Pressable
           style={styles.button_virtuelle}
-          onPress={() => router.push('/annonces/VirtualTour')}
+          onPress={() =>
+            router.push({
+              pathname: "/virtual360/[id]",
+              params: { id: item.id.toString() },
+            })
+          }
         >
           <MaterialCommunityIcons
             name="camera-marker-outline"

@@ -8,7 +8,8 @@ import { Colors } from "@/Components/Colors";
 
 export default function Page_Detail() {
   const { id } = useLocalSearchParams();
- const router=useRouter();
+  const router = useRouter();
+
   const Annonce_query: AnnonceType | undefined = Data_Appartements.find(
     (annonce) => annonce.id === Number(id)
   );
@@ -38,16 +39,15 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: "white",
   },
-  icone_back:{
-    position:'absolute',
-    top:50,
-    left:20,
+  icone_back: {
+    position: "absolute",
+    top: 50,
+    left: 20,
     backgroundColor: Colors.light,
-   
+
     padding: 8,
-    borderRadius:'100%',
+    borderRadius: "100%",
     alignItems: "center",
-    zIndex:10,  
- 
+    zIndex: 10,
   },
 });

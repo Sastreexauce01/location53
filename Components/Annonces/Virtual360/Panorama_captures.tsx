@@ -18,12 +18,12 @@ import {
 } from "react-native";
 import { CameraView, useCameraPermissions } from "expo-camera";
 import { DeviceMotion } from "expo-sensors";
-import { Colors } from "../Colors";
+import { Colors } from "../../Colors";
 import { EventSubscription } from "expo-modules-core";
 import CircularProgress from "react-native-circular-progress-indicator";
 import Svg, { Line } from "react-native-svg";
 import { useAtom } from "jotai";
-import { Scene360_Atom } from "../../Data/Atoms";
+import { Scene360_Atom } from "../../../Data/Atoms";
 
 type Props = {
   cameraVisible: boolean;
