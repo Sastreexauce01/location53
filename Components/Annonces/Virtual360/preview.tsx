@@ -2,7 +2,7 @@ import React from "react";
 import { Modal, TouchableOpacity, Text, View, StyleSheet } from "react-native";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import { Colors } from "../../Colors";
-import VirtualTour from "@/app/annonces/VirtualTour";
+
 
 interface ImageMetadata {
   uri: string;

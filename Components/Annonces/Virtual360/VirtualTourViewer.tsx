@@ -11,13 +11,13 @@ import { WebView } from "react-native-webview";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import { useRouter } from "expo-router";
 import { AnnonceType } from "@/assets/Types/type";
-// import { Colors } from "@/Components/Colors";
+
 
 interface VirtualTourViewerProps {
   annonce: AnnonceType;
 }
 
-const VirtualTourViewer: React.FC<VirtualTourViewerProps> = ({ annonce }) => {
+export const VirtualTourViewer: React.FC<VirtualTourViewerProps> = ({ annonce }) => {
   const router = useRouter();
 
   const handleClose = () => {
@@ -28,7 +28,7 @@ const VirtualTourViewer: React.FC<VirtualTourViewerProps> = ({ annonce }) => {
   if (!annonce.virtualSpace || annonce.virtualSpace.length === 0) {
     return (
       <SafeAreaView style={styles.container}>
-        <StatusBar barStyle="light-content" backgroundColor="#000" />
+        <StatusBar barStyle="dark-content" backgroundColor="#E0DEF7" />
         <View style={styles.header}>
           <View style={styles.headerLeft}>
             <View style={styles.iconContainer}>
@@ -42,7 +42,7 @@ const VirtualTourViewer: React.FC<VirtualTourViewerProps> = ({ annonce }) => {
         </View>
         <View style={styles.noVirtualSpaceContainer}>
           <View style={styles.emptyStateIcon}>
-            <Ionicons name="camera-outline" size={64} color="#E1E5E9" />
+            <Ionicons name="camera-outline" size={64} color="#001459" />
           </View>
           <Text style={styles.noVirtualSpaceTitle}>Aucun espace virtuel</Text>
           <Text style={styles.noVirtualSpaceText}>
@@ -58,7 +58,7 @@ const VirtualTourViewer: React.FC<VirtualTourViewerProps> = ({ annonce }) => {
     ...annonce,
     // On peut ajouter des métadonnées utiles
     totalScenes: annonce.virtualSpace.length,
-    timestamp: Date.now(),
+    timestamp: Date.now()
   };
 
   const galleryUrl = `https://votre-site.com/gallery?data=${encodeURIComponent(
@@ -67,33 +67,32 @@ const VirtualTourViewer: React.FC<VirtualTourViewerProps> = ({ annonce }) => {
 
   return (
     <SafeAreaView style={styles.container}>
-      <StatusBar barStyle="light-content" backgroundColor="#000" />
-
+              <StatusBar barStyle="dark-content" backgroundColor="#E0DEF7" />
+      
       {/* Header élégant */}
       <View style={styles.header}>
         <View style={styles.headerLeft}>
           <View style={styles.iconContainer}>
-            <Ionicons name="cube-outline" size={20} color="#4A90E2" />
+            <Ionicons name="cube-outline" size={20} color="#7065F0" />
           </View>
           <View style={styles.titleContainer}>
             <Text style={styles.apartmentName} numberOfLines={1}>
               {annonce.nomAnnonce}
             </Text>
             <Text style={styles.subtitle}>
-              Visite virtuelle • {annonce.virtualSpace.length} scène
-              {annonce.virtualSpace.length > 1 ? "s" : ""}
+              Visite virtuelle • {annonce.virtualSpace.length} scène{annonce.virtualSpace.length > 1 ? 's' : ''}
             </Text>
           </View>
         </View>
         <TouchableOpacity style={styles.closeButton} onPress={handleClose}>
-          <Ionicons name="close" size={22} color="#fff" />
+          <Ionicons name="close" size={22} color="#001459" />
         </TouchableOpacity>
       </View>
 
       {/* WebView avec overlay de chargement */}
       <View style={styles.webViewContainer}>
         <WebView
-          source={{ uri: 'https://gsighw6i--run.stackblitz.io' }}
+          source={{ uri: galleryUrl }}
           style={styles.webView}
           javaScriptEnabled={true}
           domStorageEnabled={true}
@@ -103,7 +102,7 @@ const VirtualTourViewer: React.FC<VirtualTourViewerProps> = ({ annonce }) => {
             <View style={styles.loadingContainer}>
               <View style={styles.loadingContent}>
                 <View style={styles.loadingIcon}>
-                  <Ionicons name="refresh-outline" size={32} color="#4A90E2" />
+                  <Ionicons name="refresh-outline" size={32} color="#7065F0" />
                 </View>
                 <Text style={styles.loadingTitle}>Chargement de la visite</Text>
                 <Text style={styles.loadingText}>
@@ -114,7 +113,7 @@ const VirtualTourViewer: React.FC<VirtualTourViewerProps> = ({ annonce }) => {
           )}
           onError={(syntheticEvent) => {
             const { nativeEvent } = syntheticEvent;
-            console.log("WebView error:", nativeEvent);
+            console.log('WebView error:', nativeEvent);
           }}
         />
       </View>
@@ -125,7 +124,7 @@ const VirtualTourViewer: React.FC<VirtualTourViewerProps> = ({ annonce }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#000",
+    backgroundColor: "#E0DEF7", // light color en arrière-plan
   },
 
   // Header redesigné
@@ -135,12 +134,12 @@ const styles = StyleSheet.create({
     alignItems: "center",
     paddingHorizontal: 20,
     paddingVertical: 16,
-    backgroundColor: "rgba(0, 0, 0, 0.95)",
+    backgroundColor: "rgba(224, 222, 247, 0.95)", // light color
     borderBottomWidth: 1,
-    borderBottomColor: "rgba(255, 255, 255, 0.08)",
-    shadowColor: "#000",
+    borderBottomColor: "rgba(0, 20, 89, 0.15)", // dark color avec transparence
+    shadowColor: "#001459", // dark color
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.3,
+    shadowOpacity: 0.1,
     shadowRadius: 8,
     elevation: 5,
   },
@@ -153,7 +152,7 @@ const styles = StyleSheet.create({
     width: 36,
     height: 36,
     borderRadius: 18,
-    backgroundColor: "rgba(74, 144, 226, 0.15)",
+    backgroundColor: "rgba(112, 101, 240, 0.15)", // primary color avec transparence
     justifyContent: "center",
     alignItems: "center",
     marginRight: 12,
@@ -164,19 +163,19 @@ const styles = StyleSheet.create({
   apartmentName: {
     fontSize: 17,
     fontWeight: "700",
-    color: "#ffffff",
+    color: "#001459", // dark color pour le texte
     marginBottom: 2,
   },
   subtitle: {
     fontSize: 12,
-    color: "rgba(255, 255, 255, 0.6)",
+    color: "rgba(0, 20, 89, 0.7)", // dark color avec transparence
     fontWeight: "500",
   },
   closeButton: {
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: "rgba(255, 255, 255, 0.1)",
+    backgroundColor: "rgba(0, 20, 89, 0.1)", // dark color avec transparence
     justifyContent: "center",
     alignItems: "center",
     marginLeft: 16,
@@ -185,11 +184,11 @@ const styles = StyleSheet.create({
   // WebView
   webViewContainer: {
     flex: 1,
-    backgroundColor: "#000",
+    backgroundColor: "#E0DEF7", // light color
   },
   webView: {
     flex: 1,
-    backgroundColor: "#000",
+    backgroundColor: "#E0DEF7", // light color
   },
 
   // Loading amélioré
@@ -197,7 +196,7 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
-    backgroundColor: "#000",
+    backgroundColor: "#E0DEF7", // light color
     paddingHorizontal: 40,
   },
   loadingContent: {
@@ -207,7 +206,7 @@ const styles = StyleSheet.create({
     width: 64,
     height: 64,
     borderRadius: 32,
-    backgroundColor: "rgba(74, 144, 226, 0.1)",
+    backgroundColor: "rgba(112, 101, 240, 0.15)", // primary color avec transparence
     justifyContent: "center",
     alignItems: "center",
     marginBottom: 24,
@@ -215,13 +214,13 @@ const styles = StyleSheet.create({
   loadingTitle: {
     fontSize: 18,
     fontWeight: "600",
-    color: "#ffffff",
+    color: "#001459", // dark color pour le texte
     marginBottom: 8,
     textAlign: "center",
   },
   loadingText: {
     fontSize: 14,
-    color: "rgba(255, 255, 255, 0.6)",
+    color: "rgba(0, 20, 89, 0.7)", // dark color avec transparence
     textAlign: "center",
     lineHeight: 20,
   },
@@ -232,13 +231,13 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
     paddingHorizontal: 40,
-    backgroundColor: "#000",
+    backgroundColor: "#E0DEF7", // light color
   },
   emptyStateIcon: {
     width: 120,
     height: 120,
     borderRadius: 60,
-    backgroundColor: "rgba(255, 255, 255, 0.05)",
+    backgroundColor: "rgba(0, 20, 89, 0.1)", // dark color avec transparence
     justifyContent: "center",
     alignItems: "center",
     marginBottom: 32,
@@ -246,16 +245,14 @@ const styles = StyleSheet.create({
   noVirtualSpaceTitle: {
     fontSize: 20,
     fontWeight: "700",
-    color: "#ffffff",
+    color: "#001459", // dark color pour le texte
     marginBottom: 12,
     textAlign: "center",
   },
   noVirtualSpaceText: {
     fontSize: 15,
-    color: "rgba(255, 255, 255, 0.6)",
+    color: "rgba(0, 20, 89, 0.7)", // dark color avec transparence
     textAlign: "center",
     lineHeight: 22,
   },
 });
-
-export default VirtualTourViewer;

@@ -12,51 +12,53 @@ import { Colors } from "@/Components/Colors";
 
 export const icone_acessibilite = [
   {
-    selected:false,
+    selected: false,
     title: "Piscine",
     icone: <FontAwesome5 name="swimming-pool" size={20} color={Colors.dark} />,
   },
   {
-    selected:false,
+    selected: false,
     title: "Television",
     icone: <FontAwesome name="television" size={20} color={Colors.dark} />,
   },
   {
-    selected:false,
+    selected: false,
     title: "Wifi",
     icone: <FontAwesome5 name="wifi" size={20} color={Colors.dark} />,
   },
   {
-    selected:false,
+    selected: false,
     title: "Plage",
     icone: <FontAwesome5 name="swimmer" size={20} color={Colors.dark} />,
   },
   {
-    selected:false,
+    selected: false,
     title: "Terrasse",
     icone: <FontAwesome6 name="people-roof" size={20} color={Colors.dark} />,
   },
   {
-    selected:false,
+    selected: false,
     title: "Parking",
     icone: <FontAwesome5 name="parking" size={20} color={Colors.dark} />,
   },
   {
-    selected:false,
+    selected: false,
     title: "Climatisation",
     icone: (
       <MaterialCommunityIcons name="air-filter" size={20} color={Colors.dark} />
     ),
   },
   {
-    selected:false,
+    selected: false,
     title: "Cuisine",
     icone: <FontAwesome6 name="kitchen-set" size={20} color={Colors.dark} />,
   },
   {
-    selected:false,
+    selected: false,
     title: "Ascenseur",
-    icone: <MaterialCommunityIcons name="stairs" size={20} color={Colors.dark} />,
+    icone: (
+      <MaterialCommunityIcons name="stairs" size={20} color={Colors.dark} />
+    ),
   },
 ];
 
@@ -91,7 +93,6 @@ export const Data_Categorie_Appartement = [
   "Hotel",
 ];
 
-
 // @/Data/data.ts
 export const Data_setting = [
   {
@@ -100,7 +101,7 @@ export const Data_setting = [
     subtitle: "Gérer vos notifications",
     icon: "notification",
     color: "#FF6B6B",
-    route: "/settings/notifications"
+    route: "/settings/notifications",
   },
   {
     id: 2,
@@ -108,7 +109,7 @@ export const Data_setting = [
     subtitle: "Contrôlez vos données",
     icon: "shield",
     color: "#4ECDC4",
-    route: "/settings/privacy"
+    route: "/settings/privacy",
   },
   {
     id: 3,
@@ -116,7 +117,7 @@ export const Data_setting = [
     subtitle: "Mot de passe et sécurité",
     icon: "lock",
     color: "#45B7D1",
-    route: "/settings/security"
+    route: "/settings/security",
   },
   {
     id: 4,
@@ -124,7 +125,7 @@ export const Data_setting = [
     subtitle: "Français",
     icon: "global",
     color: "#96CEB4",
-    route: "/settings/language"
+    route: "/settings/language",
   },
   {
     id: 5,
@@ -132,8 +133,8 @@ export const Data_setting = [
     subtitle: "Clair",
     icon: "bulb",
     color: "#FECA57",
-    route: "/settings/theme"
-  }
+    route: "/settings/theme",
+  },
 ];
 
 export const Data_support = [
@@ -143,7 +144,7 @@ export const Data_support = [
     subtitle: "FAQ et guides",
     icon: "question",
     color: "#A8E6CF",
-    route: "/support/help"
+    route: "/support/help",
   },
   {
     id: 2,
@@ -151,7 +152,7 @@ export const Data_support = [
     subtitle: "Assistance par email",
     icon: "mail",
     color: "#FFD93D",
-    route: "/support/contact"
+    route: "/support/contact",
   },
   {
     id: 3,
@@ -159,7 +160,7 @@ export const Data_support = [
     subtitle: "Rapporter un bug",
     icon: "exclamation",
     color: "#FF8A80",
-    route: "/support/report"
+    route: "/support/report",
   },
   {
     id: 4,
@@ -167,7 +168,7 @@ export const Data_support = [
     subtitle: "Termes et conditions",
     icon: "file-text",
     color: "#B8B5FF",
-    route: "/support/terms"
+    route: "/support/terms",
   },
   {
     id: 5,
@@ -175,6 +176,65 @@ export const Data_support = [
     subtitle: "Protection des données",
     icon: "shield-check",
     color: "#C7CEEA",
-    route: "/support/privacy-policy"
-  }
+    route: "/support/privacy-policy",
+  },
 ];
+
+
+export const testAnnonceData = {
+  id: 1,
+  nomAnnonce: "Villa de Luxe - Cotonou",
+  typeAnnonce: "Vente",
+  categorie: "Villa",
+  description: "Magnifique villa avec vue panoramique",
+  image: [
+    "https://gnh97h9v3c.ufs.sh/f/LUi1c9wqAJMGFICYqgaHltiyCrLU0VTSs4qXgmAOo7WZ2fcj",
+    "https://gnh97h9v3c.ufs.sh/f/LUi1c9wqAJMGpaFy2InjhFVr1S2QDTgwi8yeJlRpYNIu6MLX",
+  ],
+  adresse: "Quartier Haie Vive, Cotonou",
+  coordonnee: {
+    latitude: 6.3728,
+    longitude: 2.3903,
+  },
+  prix: 85000000,
+  nbre_chambre: 4,
+  nbre_salle_bains: 3,
+  accessibilite: ["Parking", "Jardin", "Piscine"],
+
+  // Images panoramiques 360°
+  virtualSpace: [
+    {
+      id: "salon-principal",
+      uri: "https://gnh97h9v3c.ufs.sh/f/LUi1c9wqAJMGFICYqgaHltiyCrLU0VTSs4qXgmAOo7WZ2fcj",
+      title: "Salon Principal",
+      description: "Grand salon avec vue sur le jardin",
+      hotspots: [],
+      initialYaw: 0,
+      initialPitch: 0,
+      initialFov: 75,
+    },
+    {
+      id: "cuisine-moderne",
+      uri: "https://gnh97h9v3c.ufs.sh/f/LUi1c9wqAJMGpaFy2InjhFVr1S2QDTgwi8yeJlRpYNIu6MLX",
+      title: "Cuisine Moderne",
+      description: "Cuisine équipée avec îlot central",
+      hotspots: [],
+      initialYaw: 1.5,
+      initialPitch: -0.2,
+      initialFov: 80,
+    },
+    {
+      id: "chambre-master",
+      uri: "https://gnh97h9v3c.ufs.sh/f/LUi1c9wqAJMG2ELdJs8BsgvCqbN1LSjRVWkKZPc7dhwFr869",
+      title: "Chambre Master",
+      description: "Chambre principale avec dressing",
+      hotspots: [],
+      initialYaw: -0.8,
+      initialPitch: 0.1,
+      initialFov: 70,
+    },
+  ],
+
+  date_creation: "2024-12-15T10:30:00Z",
+  id_agent: "agent-123",
+};
