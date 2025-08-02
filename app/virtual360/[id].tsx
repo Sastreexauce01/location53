@@ -4,6 +4,7 @@ import { StyleSheet, Text, View } from "react-native";
 import Data_Appartements from "@/Data/data-appartements.json";
 import { AnnonceType } from "@/assets/Types/type";
 import VirtualTourViewer from '@/Components/Annonces/Virtual360/VirtualTourViewer';
+import { Colors } from "@/Components/Colors";
 
 // Caster les données JSON
 const Data_Appartements_Typed = Data_Appartements as AnnonceType[];
@@ -29,7 +30,7 @@ const VirtualTourPage = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#000",
+    backgroundColor: Colors.light,
     justifyContent: 'center',
     alignItems: 'center',
   },

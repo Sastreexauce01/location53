@@ -32,10 +32,7 @@ export default function RootLayout() {
           title: "Creation d'annonce",
         }}
       />
-      <Stack.Screen
-        name="annonces/VirtualTour"
-        options={{ title: "Visite Virtuelle" }}
-      />
+      
 
       <Stack.Screen name="connexion/index" options={{ title: "Connexion" }} />
       <Stack.Screen
