@@ -9,15 +9,16 @@ import {
 } from "react-native";
 
 import Ionicons from "@expo/vector-icons/Ionicons";
-import { Colors } from "../../Colors";
+
 
 // Composants et hook
 import { useNumerisationState } from "@/assets/hooks/useNumerisationState";
-import OptionsModal from "./options";
-import EditModal from "./EditModal";
-import ImagesGrid from "./ImagesGrid";
-import Panorama_captures from "./Panorama_captures";
-import PreviewModal from "./PreviewModal";
+import ImagesGrid from "@/Components/Annonces/Virtual360/ImagesGrid";
+import Panorama_captures from "@/Components/Annonces/Virtual360/Panorama_captures";
+import EditModal from "@/Components/Annonces/Virtual360/EditModal";
+import { Colors } from "react-native/Libraries/NewAppScreen";
+import OptionsModal from "@/Components/Annonces/Virtual360/options";
+import PreviewModal from "@/Components/Annonces/Virtual360/PreviewModal";
 
 type NumerisationProps = {
   visible: boolean;

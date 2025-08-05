@@ -1,11 +1,5 @@
-import React  from "react";
-import {
-  Text,
-  View,
-  StyleSheet,
-  Pressable,
-  Modal,
-} from "react-native";
+import React from "react";
+import { Text, View, StyleSheet, Pressable, Modal } from "react-native";
 import { BlurView } from "expo-blur";
 import LottieView from "lottie-react-native";
 type props = {
@@ -21,7 +15,10 @@ const Final_CreateAnnonce = ({ modalVisible, setModalVisible }: props) => {
       animationType="slide"
       onRequestClose={() => setModalVisible(false)} // Retour pour android pour fermer le modal
     >
-      <Pressable onPress={() => setModalVisible(!modalVisible)} style={{flex:1}}>
+      <Pressable
+        onPress={() => setModalVisible(!modalVisible)}
+        style={{ flex: 1 }}
+      >
         <BlurView intensity={20} style={styles.modalOverlay}>
           <View style={styles.container}>
             <LottieView
@@ -55,6 +52,7 @@ const styles = StyleSheet.create({
     backgroundColor: "white",
     width: "100%",
     height: "50%",
-    borderRadius: 50,
+    borderTopStartRadius: 30,
+    borderTopEndRadius: 30,
   },
 });

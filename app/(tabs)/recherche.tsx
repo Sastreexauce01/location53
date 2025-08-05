@@ -1,6 +1,11 @@
-import { Text, View, StyleSheet, SafeAreaView, Pressable } from "react-native";
+import {
+  Text,
+  View,
+  StyleSheet,
+  SafeAreaView,
+  TouchableOpacity,
+} from "react-native";
 
-import Fontisto from "@expo/vector-icons/Fontisto";
 import { useState } from "react";
 import { Colors } from "@/Components/Colors";
 import { useRouter } from "expo-router";
@@ -15,27 +20,15 @@ const Recherche = () => {
       <View style={styles.container}>
         {/* Première section */}
 
-        <View style={styles.container_first}>
-          {/* Section Title */}
-          <View style={styles.container_title}>
-            <Pressable onPress={() => router.back()}>
-              <Fontisto name="angle-left" size={20} color={Colors.primary} />
-            </Pressable>
-
-            <View style={{ flex: 1, alignItems: "center" }}>
-              <Text style={styles.title}>Destination</Text>
-            </View>
-          </View>
-
-          {/* Composant de recherche */}
+       
+         {/* Composant de recherche */}
           <Search searchQuery={searchQuery} setSearchQuery={setSearchQuery} />
-        </View>
 
         {/* Section Button Rechercher */}
-        <Pressable
+        <TouchableOpacity
           style={[
             styles.button,
-            searchQuery.length < 1 && styles.buttonDisabled,
+            searchQuery.length < 3 && styles.buttonDisabled,
           ]}
           disabled={searchQuery.length < 1}
           onPress={() =>
@@ -45,7 +38,7 @@ const Recherche = () => {
           } // Navigation avec paramètre /Screen/annonces/SearchResults?query=${searchQuery}
         >
           <Text style={styles.buttonText}>Rechercher</Text>
-        </Pressable>
+        </TouchableOpacity>
       </View>
     </SafeAreaView>
   );
@@ -57,11 +50,13 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     padding: 10,
+    backgroundColor: "white",
     justifyContent: "space-between",
   },
 
-  container_first: {
+  container_search: {
     gap: 50,
+    //  backgroundColor: Colors.light,
   },
 
   container_title: {
@@ -78,7 +73,7 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.primary,
     alignItems: "center",
     padding: 15,
-    borderRadius: 20,
+    borderRadius: 50,
   },
 
   buttonDisabled: {

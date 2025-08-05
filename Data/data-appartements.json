@@ -1,6 +1,6 @@
 [
   {
-    "id": 1,
+    "id": "1",
     "nomAnnonce": "Appartement moderne centre ville",
     "typeAnnonce": "Location",
     "categorie": "Appartement",
@@ -87,7 +87,7 @@
     "id_agent": "agent_001"
   },
   {
-    "id": 2,
+    "id": "2",
     "nomAnnonce": "Villa avec piscine à la campagne",
     "typeAnnonce": "Vente",
     "categorie": "Maison",
@@ -147,7 +147,7 @@
     "id_agent": "agent_002"
   },
   {
-    "id": 3,
+    "id": "3",
     "nomAnnonce": "Studio meublé proche université",
     "typeAnnonce": "Location",
     "categorie": "Studio",
@@ -178,7 +178,7 @@
     "id_agent": "agent_003"
   },
   {
-    "id": 4,
+    "id": "4",
     "nomAnnonce": "Loft design avec terrasse",
     "typeAnnonce": "Vente",
     "categorie": "Loft",
@@ -237,7 +237,7 @@
     "id_agent": "agent_004"
   },
   {
-    "id": 5,
+    "id": "5",
     "nomAnnonce": "Maison familiale avec grand jardin",
     "typeAnnonce": "Vente",
     "categorie": "Maison",

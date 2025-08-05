@@ -13,61 +13,70 @@ import { Colors } from "@/Components/Colors";
 import { useAnnonce } from "@/assets/hooks/useAnnonce";
 
 interface Detail_CreateAnnonceProps {
-  scrollToInput: (reactNode: any) => void;
+  scrollToInput: (yPosition: number) => void;
 }
 
-const Detail_CreateAnnonce: React.FC<Detail_CreateAnnonceProps> = ({ scrollToInput }) => {
-
+const Detail_CreateAnnonce: React.FC<Detail_CreateAnnonceProps> = ({
+  scrollToInput,
+}) => {
   const inputRef = useRef<TextInput | null>(null);
 
   const handleFocus = () => {
-    if (inputRef.current) {
-      // Ici, on utilise la fonction scrollToInput pour défiler vers le TextInput
-      scrollToInput(inputRef.current?.measureLayout);
-    }
+    // Délai pour s'assurer que le layout est calculé
+    setTimeout(() => {
+      if (inputRef.current) {
+        inputRef.current.measure((x, y, width, height, pageX, pageY) => {
+          // Faire défiler vers la position de l'input avec un offset
+          scrollToInput(pageY - 100);
+        });
+      }
+    }, 100);
   };
 
- const {annonce,saveAnnonce}=useAnnonce(); 
+  const { annonce, saveAnnonce } = useAnnonce();
 
   return (
-  
-      <View style={styles.container}>
+    <View style={styles.container}>
+      {/* Title */}
+      <View style={styles.headerSection}>
         <Text style={styles.title}>
           Salut Exaucé, donnez les détails de votre propriété
         </Text>
+      </View>
 
+      {/* Content */}
+      <View style={styles.contentSection}>
         {/* Nom de l'annonce */}
-        <View style={styles.container_input}>
-          <TextInput
-            placeholder="La maison d'ange"
-            style={styles.input_nom}
-            value={annonce.nomAnnonce}
-            returnKeyType="done"
-            onSubmitEditing={() => {
-              Keyboard.dismiss(); // Ferme le clavier quand l'utilisateur appuie sur "Retour" ou "Entrée"
-            }}
-            onChangeText={(text) =>
-              saveAnnonce({ ...annonce, nomAnnonce: text })
-            }
-          />
-          <MaterialCommunityIcons
-            name="warehouse"
-            size={30}
-            color={Colors.dark}
-          />
+        <View style={styles.inputSection}>
+          <Text style={styles.sectionLabel}>Nom de l&apos;annonce</Text>
+          <View style={styles.container_input}>
+            <TextInput
+              placeholder="La maison d'ange"
+              style={styles.input_nom}
+              value={annonce.nomAnnonce}
+              returnKeyType="done"
+              onSubmitEditing={() => {
+                Keyboard.dismiss();
+              }}
+              onChangeText={(text) => saveAnnonce({ ...annonce, nomAnnonce: text })}
+            />
+            <MaterialCommunityIcons
+              name="warehouse"
+              size={24}
+              color={Colors.dark}
+            />
+          </View>
         </View>
 
         {/* Type d'annonce */}
-        <View style={styles.container_type_annonce}>
-          <Text style={styles.label}>Type d&apos;annonce</Text>
+        <View style={styles.inputSection}>
+          <Text style={styles.sectionLabel}>Type d&apos;annonce</Text>
           <View style={styles.type_annonce}>
             {Data_TypeAnnonce.map((type, index) => (
               <Pressable
                 key={index}
                 style={
-                  annonce.typeAnnonce === type
-                    ? styles.item_active
-                    : styles.item
+                  annonce.typeAnnonce === type ? styles.item_active : styles.item
                 }
                 onPress={() => saveAnnonce({ ...annonce, typeAnnonce: type })}
               >
@@ -86,8 +95,8 @@ const Detail_CreateAnnonce: React.FC<Detail_CreateAnnonceProps> = ({ scrollToInp
         </View>
 
         {/* Catégorie de propriété */}
-        <View style={styles.container_type_annonce}>
-          <Text style={styles.label}>Catégorie de propriété</Text>
+        <View style={styles.inputSection}>
+          <Text style={styles.sectionLabel}>Catégorie de propriété</Text>
           <View style={styles.Categorie_Appartement}>
             {Data_Categorie_Appartement.map((categorie, index) => (
               <Pressable
@@ -97,9 +106,7 @@ const Detail_CreateAnnonce: React.FC<Detail_CreateAnnonceProps> = ({ scrollToInp
                     ? styles.item_active
                     : styles.item
                 }
-                onPress={() =>
-                  saveAnnonce({ ...annonce, categorie: categorie })
-                }
+                onPress={() => saveAnnonce({ ...annonce, categorie: categorie })}
               >
                 <Text
                   style={
@@ -116,27 +123,27 @@ const Detail_CreateAnnonce: React.FC<Detail_CreateAnnonceProps> = ({ scrollToInp
         </View>
 
         {/* Description */}
-        <View style={styles.container_type_annonce}>
-          <Text style={styles.label}>Description</Text>
+        <View style={styles.inputSection}>
+          <Text style={styles.sectionLabel}>Description</Text>
           <TextInput
+            ref={inputRef}
             placeholder="Décrivez votre bien ici..."
             style={styles.input_desc}
             multiline={true}
             value={annonce.description}
-           onFocus={handleFocus}
+            onFocus={handleFocus}
             returnKeyType="done"
             onSubmitEditing={() => {
-              // Logic when submit is pressed, for example, focus on next input field or hide keyboard
-              Keyboard.dismiss(); // Ferme le clavier quand l'utilisateur appuie sur "Retour" ou "Entrée"
+              Keyboard.dismiss();
             }}
             onChangeText={(text) =>
               saveAnnonce({ ...annonce, description: text })
             }
-            // multiline={true}
+            textAlignVertical="top"
           />
         </View>
       </View>
-   
+    </View>
   );
 };
 
@@ -145,86 +152,104 @@ export default Detail_CreateAnnonce;
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    gap: 50,
-    padding: 10,
-    // backgroundColor: "orange",
-    // borderWidth: 1,
-    justifyContent: "space-between",
+    minHeight: '100%',
+  
+  },
+
+  headerSection: {
+    marginBottom: 32,
   },
 
   title: {
-    fontSize: 25,
+    fontSize: 24,
     color: Colors.dark,
+    fontWeight: "600",
+    lineHeight: 32,
+  },
+
+  contentSection: {
+    flex: 1,
+    gap: 28,
+  },
+
+  inputSection: {
+    gap: 12,
+  },
+
+  sectionLabel: {
+    fontSize: 18,
+    color: Colors.dark,
+    fontWeight: "500",
+    marginBottom: 4,
   },
 
   container_input: {
     flexDirection: "row",
     alignItems: "center",
-    padding: 5,
-    justifyContent: "space-between",
+    paddingHorizontal: 16,
+    paddingVertical: 12,
     backgroundColor: Colors.light,
-    borderRadius: 5,
+    borderRadius: 8,
+    minHeight: 48,
   },
 
   input_nom: {
-    height: "100%",
-    //  backgroundColor:'orange',
     flex: 1,
-  },
-
-  container_type_annonce: {
-    gap: 10,
-  },
-
-  label: {
-    fontSize: 20,
+    fontSize: 16,
     color: Colors.dark,
-    fontWeight: "500",
   },
 
   type_annonce: {
     flexDirection: "row",
-    justifyContent: "flex-start",
-    gap: 20,
+    flexWrap: "wrap",
+    gap: 12,
   },
 
   Categorie_Appartement: {
     flexDirection: "row",
     flexWrap: "wrap",
-    justifyContent: "flex-start",
-    gap: 25,
+    gap: 12,
   },
 
   item: {
     backgroundColor: Colors.light,
-    padding: 10,
-    borderRadius: 5,
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    borderRadius: 8,
+    minWidth: 80,
+    alignItems: 'center',
   },
 
   item_texte: {
     color: Colors.dark,
     fontWeight: "500",
-    fontSize: 15,
+    fontSize: 14,
   },
 
   item_active: {
     backgroundColor: Colors.dark,
-    padding: 10,
-    borderRadius: 5,
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    borderRadius: 8,
+    minWidth: 80,
+    alignItems: 'center',
   },
 
   item_texte_active: {
     color: Colors.light,
     fontWeight: "500",
-    fontSize: 15,
+    fontSize: 14,
   },
 
   input_desc: {
-    height: 120,
+    minHeight: 120,
+    maxHeight: 200,
     backgroundColor: Colors.light,
-    borderRadius: 5,
-    paddingTop: 10,
-    paddingLeft: 10,
+    borderRadius: 8,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    fontSize: 16,
+    color: Colors.dark,
     textAlignVertical: "top",
   },
 });

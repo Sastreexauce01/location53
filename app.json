@@ -1,12 +1,12 @@
 {
   "expo": {
-    "name": "location53",
-    "slug": "location53",
+    "name": "Real Estate",
+    "slug": "real_estate",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
-    "scheme": "location53",
-    "userInterfaceStyle": "automatic",
+    "scheme": "realestate",
+    "userInterfaceStyle":"light", // ou  Automatic 
     "newArchEnabled": true,
     "ios": {
       "supportsTablet": true

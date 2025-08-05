@@ -16,7 +16,7 @@ const VirtualTourPage = () => {
   const { id } = useLocalSearchParams();
 
   const Annonce_query: AnnonceType | undefined = Data_Appartements_Typed.find(
-    (annonce) => annonce.id === Number(id)
+    (annonce) => annonce.id ===id
   );
 
   if (!Annonce_query) {

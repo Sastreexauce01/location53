@@ -61,7 +61,7 @@ export const VirtualTourViewer: React.FC<VirtualTourViewerProps> = ({ annonce })
     timestamp: Date.now()
   };
 
-  const galleryUrl = `https://votre-site.com/gallery?data=${encodeURIComponent(
+  const galleryUrl = `https://panorama-gallery.netlify.app?data=${encodeURIComponent(
     JSON.stringify(tourData)
   )}`;
 

@@ -1,5 +1,5 @@
 export type AnnonceType = {
-  id: number;
+  id: string;
   nomAnnonce: string;
   typeAnnonce: string;
   categorie: string;
@@ -18,14 +18,9 @@ export type AnnonceType = {
 
 
 export interface Image360 {
-  id: string; // UUID ou hash
   uri: string; // URL ou chemin local
   title: string;
   description: string;
-  hotspots: Hotspot[];
-  initialYaw?: number; // Angle horizontal de vue initiale
-  initialPitch?: number; // Angle vertical
-  initialFov?: number; // Zoom (field of view)
 }
 
 export interface Hotspot {

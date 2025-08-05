@@ -1,16 +1,14 @@
-import { useState } from 'react';
-import { Alert } from 'react-native';
-import * as ImagePicker from 'expo-image-picker';
-
-interface ImageMetadata {
-  uri: string;
-  title: string;
-  description: string;
-  
-}
-
+import { useState } from "react";
+import { Alert } from "react-native";
+import * as ImagePicker from "expo-image-picker";
+import { Image360 } from "../Types/type";
+import { useAnnonce } from "./useAnnonce";
 
 export const useNumerisationState = () => {
+
+  
+  const { annonce, saveAnnonce } = useAnnonce();
+
   // États pour les modals
   const [cameraVisible, setCameraVisible] = useState(false);
   const [optionsModalVisible, setOptionsModalVisible] = useState(false);
@@ -18,7 +16,7 @@ export const useNumerisationState = () => {
   const [editModalVisible, setEditModalVisible] = useState(false);
 
   // États pour les images
-  const [selectedImages, setSelectedImages] = useState<ImageMetadata[]>([]);
+  const [selectedImages, setSelectedImages] = useState<Image360[]>([]);
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);
   const [editingImageIndex, setEditingImageIndex] = useState(0);
 
@@ -71,20 +69,18 @@ export const useNumerisationState = () => {
     return false;
   };
 
-  const updateImageMetadata = (index: number, title: string, description: string) => {
+  const updateImageMetadata = (
+    index: number,
+    title: string,
+    description: string
+  ) => {
     setSelectedImages((prev) =>
-      prev.map((img, i) =>
-        i === index
-          ? { ...img, title, description }
-          : img
-      )
+      prev.map((img, i) => (i === index ? { ...img, title, description } : img))
     );
   };
 
   const removeImage = (index: number) => {
-    setSelectedImages((prev) =>
-      prev.filter((_, i) => i !== index)
-    );
+    setSelectedImages((prev) => prev.filter((_, i) => i !== index));
   };
 
   // Actions pour la navigation
@@ -93,7 +89,7 @@ export const useNumerisationState = () => {
   };
 
   const goToNextImage = () => {
-    setSelectedImageIndex((prev) => 
+    setSelectedImageIndex((prev) =>
       Math.min(selectedImages.length - 1, prev + 1)
     );
   };

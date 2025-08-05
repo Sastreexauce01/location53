@@ -21,73 +21,79 @@ import Preview_CreateAnnonce from "@/Components/Annonces/Preview_CreateAnnonce";
 import { useRef, useState } from "react";
 import Final_CreateAnnonce from "@/Components/Annonces/Final_CreateAnnonce";
 
-
-
 const CreateAnnonce = () => {
-  const [step, setStep] = useState<number>(1);
+  const [step, setStep] = useState<number>(5);
   const [modalVisible, setModalVisible] = useState(false);
-
   const scrollViewRef = useRef<ScrollView | null>(null);
 
   // Fonction pour faire défiler le ScrollView vers un élément spécifique
-  const scrollToInput = (reactNode: any) => {
+  const scrollToInput = (yPosition: number) => {
     if (scrollViewRef.current) {
       scrollViewRef.current.scrollTo({
-        y: reactNode,
+        y: yPosition,
         animated: true,
       });
     }
   };
+
   const router = useRouter();
+
+  const renderCurrentStep = () => {
+    switch (step) {
+      case 1:
+        return <Detail_CreateAnnonce scrollToInput={scrollToInput} />;
+      case 2:
+        return <Photos_CreateAnnonce />;
+      case 3:
+        return <Lieu_CreateAnnonce />;
+      case 4:
+        return <OtherInfos_CreateAnnonce />;
+      case 5:
+        return <VirtualSpace_CreateAnnonce />;
+      case 6:
+        return <Preview_CreateAnnonce />;
+      default:
+        return <Detail_CreateAnnonce scrollToInput={scrollToInput} />;
+    }
+  };
+
   return (
-    <SafeAreaView style={{ flex: 1 }}>
+    <SafeAreaView style={styles.safeArea}>
       {/* Section Title */}
       <View style={styles.container_title}>
-        <Pressable
-          onPress={() => router.back()}
-          style={{
-            backgroundColor: Colors.light,
-            padding: 8,
-            alignItems: "center",
-            borderRadius: "100%",
-          }}
-        >
+        {/* back.... */}
+        <Pressable onPress={() => router.back()} style={styles.backButton}>
           <Fontisto name="angle-left" size={15} color={Colors.primary} />
         </Pressable>
 
-        <View style={{ flex: 1, alignItems: "center" }}>
+        <View style={styles.titleContainer}>
           <Text style={styles.title}>Nouvelle annonce</Text>
         </View>
       </View>
 
-      <View style={styles.container}>
-        <KeyboardAvoidingView
-          behavior={Platform.OS === "ios" ? "padding" : "height"}
-          style={{ flex: 1 }}
-          keyboardVerticalOffset={Platform.OS === "ios" ? 80 : 0}
+      {/* Main Content */}
+      <KeyboardAvoidingView
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
+        style={styles.keyboardContainer}
+        keyboardVerticalOffset={Platform.OS === "ios" ? 100 : 0}
+      >
+        <ScrollView
+          ref={scrollViewRef}
+          style={styles.scrollView}
+          contentContainerStyle={styles.scrollContent}
+          keyboardShouldPersistTaps="handled"
+          showsVerticalScrollIndicator={false}
         >
-          <ScrollView
-            ref={scrollViewRef}
-            contentContainerStyle={{ padding: 20 }}
-            keyboardShouldPersistTaps="handled"
-          >
-            {step === 1 && <Detail_CreateAnnonce  scrollToInput={scrollToInput}/>}
-            {step === 2 && <Photos_CreateAnnonce />}
-            {step === 3 && <Lieu_CreateAnnonce />}
-            {step === 4 && <OtherInfos_CreateAnnonce />}
-
-            {step === 5 && <VirtualSpace_CreateAnnonce />}
-            
-            {/* {step === 5 && <VirtualTourCreator />} */}
-
-            {step === 6 && <Preview_CreateAnnonce />}
-          </ScrollView>
-        </KeyboardAvoidingView>
+          {renderCurrentStep()}
+        </ScrollView>
 
         {/* Section Button */}
         <View style={styles.container_button}>
           <TouchableOpacity
-            style={styles.button_precedent}
+            style={[
+              styles.button_precedent,
+              step === 1 && styles.buttonDisabled,
+            ]}
             disabled={step === 1}
             onPress={() => {
               if (step === 6) {
@@ -97,27 +103,35 @@ const CreateAnnonce = () => {
               }
             }}
           >
-            <Text style={{ color: Colors.dark, fontSize: 15 }}>
-              {step === 6 ? "Modifier" : "Precedent"}
+            <Text
+              style={[
+                styles.buttonText,
+                { color: step === 1 ? "gray" : Colors.dark },
+              ]}
+            >
+              {step === 6 ? "Modifier" : "Précédent"}
             </Text>
           </TouchableOpacity>
+
           <TouchableOpacity
             style={styles.button}
             onPress={() => {
               if (step === 6) {
                 setModalVisible(!modalVisible);
-                router.push("/(tabs)/annonces");
+                // router.push("/(tabs)/annonces"); retour après l'animation
               } else {
                 setStep(step + 1);
               }
             }}
           >
-            <Text style={{ color: "white", fontSize: 15 }}>
+            <Text style={styles.buttonTextActive}>
               {step === 6 ? "Publier" : "Suivant"}
             </Text>
           </TouchableOpacity>
         </View>
-      </View>
+      </KeyboardAvoidingView>
+
+      {/* Animation de fin */}
       <Final_CreateAnnonce
         modalVisible={modalVisible}
         setModalVisible={setModalVisible}
@@ -129,39 +143,100 @@ const CreateAnnonce = () => {
 export default CreateAnnonce;
 
 const styles = StyleSheet.create({
-  container: {
+  safeArea: {
     flex: 1,
-    // backgroundColor: "orange",
-    // borderWidth:1,
-    padding: 20,
-    justifyContent: "space-between",
-    gap: 30,
+    paddingTop: 25,
+    backgroundColor: "white",
   },
 
   container_title: {
     flexDirection: "row",
     alignItems: "center",
-    // backgroundColor: "orange",
-    padding: 10,
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    borderBottomWidth: 1,
+    borderBottomColor: Colors.light,
+  },
+
+  backButton: {
+    backgroundColor: Colors.light,
+    padding: 8,
+    alignItems: "center",
+    justifyContent: "center",
+    borderRadius: 20,
+    width: 36,
+    height: 36,
+  },
+
+  titleContainer: {
+    flex: 1,
+    alignItems: "center",
+    marginRight: 36, // Pour compenser le bouton retour
   },
 
   title: {
-    fontSize: 16,
-    fontWeight: "500",
+    fontSize: 18,
+    fontWeight: "600",
+    color: Colors.dark,
   },
+
+  keyboardContainer: {
+    flex: 1,
+  },
+
+  scrollView: {
+    flex: 1,
+  },
+
+  scrollContent: {
+    flexGrow: 1,
+    paddingHorizontal: 20,
+    paddingVertical: 16,
+    paddingBottom: 100,
+  },
+
   container_button: {
     flexDirection: "row",
-    justifyContent: "space-around",
+    justifyContent: "space-between",
+    paddingHorizontal: 20,
+    paddingVertical: 16,
+    borderTopWidth: 1,
+    borderTopColor: Colors.light,
+    gap: 12,
   },
 
   button: {
     backgroundColor: Colors.primary,
-    padding: 10,
-    borderRadius: 5,
+    paddingVertical: 14,
+    paddingHorizontal: 24,
+    borderRadius: 8,
+    flex: 1,
+    alignItems: "center",
+    justifyContent: "center",
   },
+
   button_precedent: {
     backgroundColor: Colors.light,
-    padding: 10,
-    borderRadius: 5,
+    paddingVertical: 14,
+    paddingHorizontal: 24,
+    borderRadius: 8,
+    flex: 1,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+
+  buttonDisabled: {
+    opacity: 0.5,
+  },
+
+  buttonText: {
+    fontSize: 16,
+    fontWeight: "500",
+  },
+
+  buttonTextActive: {
+    color: "white",
+    fontSize: 16,
+    fontWeight: "500",
   },
 });
