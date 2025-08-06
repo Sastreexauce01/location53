@@ -22,8 +22,10 @@ import { Colors } from "../../Colors";
 import { EventSubscription } from "expo-modules-core";
 import CircularProgress from "react-native-circular-progress-indicator";
 import Svg, { Line } from "react-native-svg";
-import { useAtom } from "jotai";
-import { Scene360_Atom } from "../../../Data/Atoms";
+
+
+// Import de l'atom (à définir selon votre structure)
+// import { Scene360_Atom } from "../../atoms/sceneAtom";
 
 type Props = {
   cameraVisible: boolean;
@@ -42,6 +44,17 @@ interface CaptureConfig {
   mode: CaptureMode;
   betaRange: [number, number];
   description: string;
+}
+
+interface Photo {
+  rotation: Rotation;
+  uri: string;
+  timestamp: number;
+  mode: CaptureMode;
+}
+
+interface Scene360 {
+  photos: Photo[];
 }
 
 // Constantes pour l'orientation
@@ -80,28 +93,28 @@ const CAPTURE_MODES: Record<CaptureMode, CaptureConfig> = {
 const UPDATE_INTERVAL = 50; // ms
 const PROGRESS_ANIMATION_DURATION = 500; // ms
 
+
+
 const Panorama_captures = ({ cameraVisible, setCameraVisible }: Props) => {
   const [permission, requestPermission] = useCameraPermissions();
   const progressRef = useRef<any>(null);
   const cameraRef = useRef<CameraView>(null);
 
-  const [progressValue, setProgressValue] = useState(0);
+  const [progressValue, setProgressValue] = useState<number>(0);
   const [rotation, setRotation] = useState<Rotation>({
     alpha: 0,
     beta: 0,
     gamma: 0,
   });
-  const [isCapturing, setIsCapturing] = useState(false);
-  const [currentCaptureMode, setCurrentCaptureMode] =
-    useState<CaptureMode>("horizontal");
+  const [isCapturing, setIsCapturing] = useState<boolean>(false);
+  const [currentCaptureMode, setCurrentCaptureMode] = useState<CaptureMode>("horizontal");
 
-  const [scene, setScene] = useAtom(Scene360_Atom);
+  // Remplacez par votre vrai atom
+  const [scene, setScene] = useState<Scene360>({ photos: [] });
+  // const [scene, setScene] = useAtom(Scene360_Atom);
 
   // Utilitaires
-  const radToDeg = useCallback(
-    (rad: number): number => rad * (180 / Math.PI),
-    []
-  );
+  const radToDeg = useCallback((rad: number): number => rad * (180 / Math.PI), []);
 
   // Détermine le mode de capture basé sur le nombre de photos
   const getCaptureMode = useCallback((): CaptureMode => {
@@ -117,7 +130,7 @@ const Panorama_captures = ({ cameraVisible, setCameraVisible }: Props) => {
   }, [getCaptureMode]);
 
   // Calcul de l'écart d'angle avec mémoisation (seulement pour le mode horizontal)
-  const angleDeviation = useMemo(() => {
+  const angleDeviation = useMemo((): number => {
     if (currentCaptureMode !== "horizontal") return 0;
     if (scene.photos.length === 0) return 0;
 
@@ -155,8 +168,7 @@ const Panorama_captures = ({ cameraVisible, setCameraVisible }: Props) => {
         break;
     }
 
-    const isGamma =
-      Math.abs(rotation.gamma) <= ORIENTATION_TOLERANCES.GAMMA_MAX;
+    const isGamma = Math.abs(rotation.gamma) <= ORIENTATION_TOLERANCES.GAMMA_MAX;
 
     return { isBeta, isGamma, isAlpha };
   }, [
@@ -167,16 +179,10 @@ const Panorama_captures = ({ cameraVisible, setCameraVisible }: Props) => {
     scene.photos.length,
   ]);
 
-  const isPerfectOrientation =
-    orientationChecks.isBeta &&
-    orientationChecks.isGamma &&
-    orientationChecks.isAlpha;
+  const isPerfectOrientation = orientationChecks.isBeta && orientationChecks.isGamma && orientationChecks.isAlpha;
 
   // Message d'orientation amélioré
-  const orientationMessage = useMemo(() => {
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const config = CAPTURE_MODES[currentCaptureMode];
-
+  const orientationMessage = useMemo((): string => {
     if (currentCaptureMode === "sky") {
       if (!orientationChecks.isBeta)
         return "Pointez vers le ciel (inclinez vers le haut)";
@@ -202,14 +208,18 @@ const Panorama_captures = ({ cameraVisible, setCameraVisible }: Props) => {
 
   // Gestion des capteurs avec nettoyage approprié
   useEffect(() => {
-    let subscription: EventSubscription;
+    let subscription: EventSubscription | null = null;
 
     const subscribeToMotion = async () => {
       try {
         await DeviceMotion.setUpdateInterval(UPDATE_INTERVAL);
 
         subscription = DeviceMotion.addListener((motionData) => {
-          const { alpha, beta, gamma } = motionData.rotation ?? {};
+          const { rotation: rotationData } = motionData;
+          
+          if (!rotationData) return;
+          
+          const { alpha, beta, gamma } = rotationData;
 
           if (
             alpha !== undefined &&
@@ -233,7 +243,9 @@ const Panorama_captures = ({ cameraVisible, setCameraVisible }: Props) => {
     }
 
     return () => {
-      subscription?.remove();
+      if (subscription) {
+        subscription.remove();
+      }
     };
   }, [cameraVisible, radToDeg]);
 
@@ -243,7 +255,9 @@ const Panorama_captures = ({ cameraVisible, setCameraVisible }: Props) => {
       setProgressValue(100);
     } else {
       setProgressValue(0);
-      progressRef.current?.reAnimate();
+      if (progressRef.current?.reAnimate) {
+        progressRef.current.reAnimate();
+      }
     }
   }, [isPerfectOrientation, isCapturing]);
 
@@ -261,7 +275,7 @@ const Panorama_captures = ({ cameraVisible, setCameraVisible }: Props) => {
       });
 
       if (photo?.uri) {
-        const newPhoto = {
+        const newPhoto: Photo = {
           rotation: { ...rotation },
           uri: photo.uri,
           timestamp: Date.now(),
@@ -321,29 +335,49 @@ const Panorama_captures = ({ cameraVisible, setCameraVisible }: Props) => {
   ]);
 
   // Styles dynamiques avec mémoisation
-  const dynamicStyles = useMemo(
-    () => ({
-      orientationCircle: {
-        transform: [{ translateY: rotation.beta * 5 }],
-        backgroundColor: orientationChecks.isGamma ? "white" : Colors.primary,
-        top: 40,
-      },
-      progressContainer: {
-        transform: [
-          {
-            translateX:
-              scene.photos.length === 0 ? 0 : -(angleDeviation - 60) * 5,
-          },
-        ],
-      },
-    }),
-    [
-      rotation.beta,
-      orientationChecks.isGamma,
-      angleDeviation,
-      scene.photos.length,
-    ]
-  );
+  const dynamicStyles = useMemo(() => ({
+    orientationCircle: {
+      transform: [{ translateY: rotation.beta * 5 }],
+      backgroundColor: orientationChecks.isGamma ? "white" : Colors.primary,
+      top: 40,
+    },
+    progressContainer: {
+      transform: [
+        {
+          translateX: scene.photos.length === 0 ? 0 : -(angleDeviation - 60) * 5,
+        },
+      ],
+    },
+  }), [
+    rotation.beta,
+    orientationChecks.isGamma,
+    angleDeviation,
+    scene.photos.length,
+  ]);
+
+  // Fonction pour obtenir l'icône selon le mode
+  const getModeIcon = useCallback((mode: CaptureMode): keyof typeof Ionicons.glyphMap => {
+    switch (mode) {
+      case "sky":
+        return "sunny";
+      case "ground":
+        return "earth";
+      default:
+        return "camera";
+    }
+  }, []);
+
+  // Fonction pour obtenir la couleur selon le mode
+  const getModeColor = useCallback((mode: CaptureMode): string => {
+    switch (mode) {
+      case "sky":
+        return "#87CEEB";
+      case "ground":
+        return "#8B4513";
+      default:
+        return Colors.primary;
+    }
+  }, []);
 
   // Gestion des permissions
   if (!permission) {
@@ -381,30 +415,27 @@ const Panorama_captures = ({ cameraVisible, setCameraVisible }: Props) => {
         </Pressable>
 
         {/* Indicateur de progression */}
-        <Text style={styles.progressText}>
-          {scene.photos.length} / 6 photos
-        </Text>
+        <View style={styles.progressInfo}>
+          <Text style={styles.progressText}>
+            {scene.photos.length} / 8 photos
+          </Text>
+          <Text style={styles.modeText}>
+            Mode: {CAPTURE_MODES[currentCaptureMode].description}
+          </Text>
+        </View>
 
         {/* Message d'orientation */}
         <Text style={styles.orientationMessage}>{orientationMessage}</Text>
 
         {/* Cercle de progression avec couleur selon le mode */}
-        <View
-          style={[styles.progressContainer, dynamicStyles.progressContainer]}
-        >
+        <View style={[styles.progressContainer, dynamicStyles.progressContainer]}>
           <CircularProgress
             ref={progressRef}
             value={progressValue}
             radius={52}
             duration={PROGRESS_ANIMATION_DURATION}
             progressValueColor="transparent"
-            activeStrokeColor={
-              currentCaptureMode === "sky"
-                ? "#87CEEB"
-                : currentCaptureMode === "ground"
-                ? "#8B4513"
-                : Colors.primary
-            }
+            activeStrokeColor={getModeColor(currentCaptureMode)}
             inActiveStrokeColor={Colors.light}
             inActiveStrokeOpacity={0.9}
             inActiveStrokeWidth={8}
@@ -415,47 +446,17 @@ const Panorama_captures = ({ cameraVisible, setCameraVisible }: Props) => {
           {/* Icône au centre selon le mode */}
           <View style={styles.progressIcon}>
             <Ionicons
-              name={
-                currentCaptureMode === "sky"
-                  ? "sunny"
-                  : currentCaptureMode === "ground"
-                  ? "earth"
-                  : "camera"
-              }
+              name={getModeIcon(currentCaptureMode)}
               size={24}
-              color={
-                currentCaptureMode === "sky"
-                  ? "#87CEEB"
-                  : currentCaptureMode === "ground"
-                  ? "#8B4513"
-                  : Colors.primary
-              }
+              color={getModeColor(currentCaptureMode)}
             />
           </View>
         </View>
 
-        {/* Ligne de guidage (seulement pour le mode horizontal) */}
-        {currentCaptureMode === "horizontal" && (
-          <View style={styles.guideLine}>
-            <Svg height="100" width="200">
-              <Line
-                x1="40"
-                y1="55"
-                x2="10"
-                y2="55"
-                stroke="#45b7d1"
-                strokeWidth="4"
-                strokeLinecap="round"
-                strokeDasharray="3,12"
-              />
-            </Svg>
-          </View>
-        )}
+   
 
         {/* Cercle d'orientation */}
-        <View
-          style={[styles.orientationCircle, dynamicStyles.orientationCircle]}
-        />
+        <View style={[styles.orientationCircle, dynamicStyles.orientationCircle]} />
 
         {/* Informations de débogage (optionnel) */}
         {__DEV__ && (

@@ -1,3 +1,5 @@
+// Types/type.ts - Version corrigée
+
 export type AnnonceType = {
   id: string;
   nomAnnonce: string;
@@ -16,8 +18,8 @@ export type AnnonceType = {
   id_agent: string;
 };
 
-
 export interface Image360 {
+  id: string; // ✅ Ajout de l'ID unique
   uri: string; // URL ou chemin local
   title: string;
   description: string;

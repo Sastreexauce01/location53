@@ -18,3 +18,4 @@ export const annonce_Atom = atom<AnnonceType>({
   date_creation: "",
   id_agent: "",
 });
+

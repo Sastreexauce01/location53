@@ -2,12 +2,14 @@ import React from "react";
 import { Text, View, StyleSheet, Pressable, Modal } from "react-native";
 import { BlurView } from "expo-blur";
 import LottieView from "lottie-react-native";
+import { useRouter } from "expo-router";
 type props = {
   modalVisible: boolean;
   setModalVisible: any;
 };
 
 const Final_CreateAnnonce = ({ modalVisible, setModalVisible }: props) => {
+  const router = useRouter();
   return (
     <Modal
       visible={modalVisible}
@@ -16,7 +18,10 @@ const Final_CreateAnnonce = ({ modalVisible, setModalVisible }: props) => {
       onRequestClose={() => setModalVisible(false)} // Retour pour android pour fermer le modal
     >
       <Pressable
-        onPress={() => setModalVisible(!modalVisible)}
+        onPress={() => {
+          setModalVisible(!modalVisible);
+          router.push("/(tabs)/annonces");
+        }}
         style={{ flex: 1 }}
       >
         <BlurView intensity={20} style={styles.modalOverlay}>

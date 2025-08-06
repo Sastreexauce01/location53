@@ -11,6 +11,7 @@ import { ImageBackground } from "expo-image";
 import Numerisation from "./Virtual360/Numerisation";
 
 const VirtualSpace_CreateAnnonce = () => {
+  
   const [isLoading, setIsloading] = useState(true);
   const [visible, setVisible] = useState(false);  // a revoir 
 

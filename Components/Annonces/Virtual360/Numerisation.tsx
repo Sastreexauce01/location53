@@ -11,13 +11,11 @@ import {
 import Ionicons from "@expo/vector-icons/Ionicons";
 import { Colors } from "../../Colors";
 
-// Composants et hook
-import { useNumerisationState } from "@/assets/hooks/useNumerisationState";
-import OptionsModal from "./options";
-import EditModal from "./EditModal";
+import { useNumerisationState } from "@/assets/hooks/useNumerisation";
+import OptionsModal from "./OptionsModal";
 import ImagesGrid from "./ImagesGrid";
+import EditModal from "./EditModal";
 import Panorama_captures from "./Panorama_captures";
-import PreviewModal from "./PreviewModal";
 
 type NumerisationProps = {
   visible: boolean;
@@ -26,44 +24,45 @@ type NumerisationProps = {
 
 const Numerisation = ({ visible, setVisible }: NumerisationProps) => {
   const {
+  
     // États
     cameraVisible,
     setCameraVisible,
+
     optionsModalVisible,
-    previewModalVisible,
+    // previewModalVisible,
     editModalVisible,
     selectedImages,
-    selectedImageIndex,
+    // selectedImageIndex,
     editingImageIndex,
 
     // Actions
     addImagesFromGallery,
     updateImageMetadata,
     removeImage,
-    goToPreviousImage,
-    goToNextImage,
+
     openOptionsModal,
     closeOptionsModal,
     openPreviewModal,
-    closePreviewModal,
+    // closePreviewModal,
     openEditModal,
     closeEditModal,
     openCamera,
   } = useNumerisationState();
 
   // Handlers spécifiques
-  const handleImageLoad = () => {
-    console.log("Image 360° chargée avec succès !");
-  };
+  // const handleImageLoad = () => {
+  //   console.log("Image 360° chargée avec succès !");
+  // };
 
-  const handleImageError = (error: string) => {
-    console.error("Erreur de chargement:", error);
-  };
+  // const handleImageError = (error: string) => {
+  //   console.error("Erreur de chargement:", error);
+  // };
 
-  const handleEditFromPreview = () => {
-    closePreviewModal();
-    openEditModal(selectedImageIndex);
-  };
+  // const handleEditFromPreview = () => {
+  //   closePreviewModal();
+  //   openEditModal(selectedImageIndex);
+  // };
 
   const handleSaveEdit = (title: string, description: string) => {
     updateImageMetadata(editingImageIndex, title, description);
@@ -74,25 +73,26 @@ const Numerisation = ({ visible, setVisible }: NumerisationProps) => {
   };
 
   return (
-    <Modal visible={!visible} animationType="fade" style={styles.container}>
+    <Modal visible={!visible} animationType="slide" style={styles.container}>
       {/* Header */}
       <View style={styles.head_container}>
         <Pressable onPress={() => setVisible(!visible)}>
-          <Ionicons name="chevron-back" size={24} color="black" />
+          <Ionicons name="chevron-back" size={24} color={Colors.primary} />
         </Pressable>
 
-        <Text style={styles.title} numberOfLines={1} ellipsizeMode="tail">
-          Sans titre
-        </Text>
+        {/* <Text style={styles.title} numberOfLines={1} ellipsizeMode="tail">
+          {annonce.nomAnnonce}
+        </Text> */}
 
         <TouchableOpacity
           style={[
             styles.button,
             selectedImages.length === 0 && styles.buttonDisabled,
           ]}
-          onPress={() =>
-            selectedImages.length > 0 && console.log("Charger les images")
-          }
+          onPress={() => {
+            selectedImages.length > 0 && console.log("Charger les images");
+            setVisible(!visible);
+          }}
           disabled={selectedImages.length === 0}
         >
           <Text style={styles.buttonText}>
@@ -141,18 +141,6 @@ const Numerisation = ({ visible, setVisible }: NumerisationProps) => {
         onDelete={handleDeleteImage}
       />
 
-      <PreviewModal
-        visible={previewModalVisible}
-        images={selectedImages}
-        currentIndex={selectedImageIndex}
-        onClose={closePreviewModal}
-        onPrevious={goToPreviousImage}
-        onNext={goToNextImage}
-        onEdit={handleEditFromPreview}
-        onImageLoad={handleImageLoad}
-        onImageError={handleImageError}
-      />
-
       <Panorama_captures
         cameraVisible={cameraVisible}
         setCameraVisible={setCameraVisible}
@@ -177,7 +165,7 @@ const styles = StyleSheet.create({
     backgroundColor: "#ccc",
   },
   title: {
-    fontSize: 16,
+    fontSize: 12,
     fontWeight: "500",
     flex: 1,
     alignItems: "center",

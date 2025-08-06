@@ -11,7 +11,7 @@ export default function Page_Detail() {
   const router = useRouter();
 
   const Annonce_query: AnnonceType | undefined = Data_Appartements.find(
-    (annonce) => annonce.id === Number(id)
+    (annonce) => annonce.id === id
   );
 
   // console.log(Annonce_query); // Vérifiez la structure de l'objet récupéré
@@ -37,6 +37,8 @@ export default function Page_Detail() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
     backgroundColor: "white",
   },
   icone_back: {

@@ -12,7 +12,7 @@ const Acessibilite = ({acces}:props) => {
     
       <View  style={styles.container_accessibilite}>
          {icone_acess?.icone}
-        <Text style={{ fontWeight: 500 ,fontSize:15 , color:'gray'}}>{acces}</Text>
+        <Text style={{ fontWeight: 500 ,fontSize:12 , color:'gray'}}>{acces}</Text>
       </View>
   
   );
@@ -26,7 +26,7 @@ const styles = StyleSheet.create({
     flexDirection:'row',
     alignItems:'center',
     borderWidth: 1,
-    padding: 10,
+    padding: 6,
     borderRadius: 5,
     gap:5,
     borderColor:Colors.dark,

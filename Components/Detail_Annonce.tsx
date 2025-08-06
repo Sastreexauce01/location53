@@ -7,34 +7,47 @@ import {
   Linking,
 } from "react-native";
 
-
 import Entypo from "@expo/vector-icons/Entypo";
 import Acessibilite from "@/Components/Acessibilite";
 import { Colors } from "@/Components/Colors";
 import { AnnonceType } from "@/assets/Types/type";
 
 import Image_Carousel from "./Image_Carousel";
+import { AntDesign, MaterialCommunityIcons } from "@expo/vector-icons";
+import { useRouter } from "expo-router";
 
 type props = {
   item: AnnonceType;
 };
 
-const Detail_Annonce: React.FC<props> = ({item}) => {
-
+const Detail_Annonce: React.FC<props> = ({ item }) => {
+  const router = useRouter();
   return (
     <View style={styles.container}>
-
       <ScrollView
         contentContainerStyle={styles.scrollContainer}
         showsVerticalScrollIndicator={false}
       >
         {/* Section Caroussel image */}
-        <View style={styles.container_carousel} >
-         <Image_Carousel item={item.image} />
+        <View style={styles.container_carousel}>
+          <Image_Carousel item={item.image} />
         </View>
 
         <View style={styles.container_information}>
           <Text style={styles.title}>{item.nomAnnonce}</Text>
+
+          <TouchableOpacity
+            style={styles.virtualContainer}
+            onPress={() =>
+              router.push({
+                pathname: `/virtual360/[id]`,
+                params: { id: item.id },
+              })
+            }
+          >
+            <MaterialCommunityIcons name="rotate-360" size={32} color="white" />
+            <Text style={styles.buttonText}>Visite virtuelle 360</Text>
+          </TouchableOpacity>
 
           <View style={styles.container_adresse}>
             <Entypo name="location" size={24} color={Colors.primary} />
@@ -64,11 +77,14 @@ const Detail_Annonce: React.FC<props> = ({item}) => {
         <Text style={styles.prix}>{item.prix} F CFA / mois</Text>
         <TouchableOpacity
           style={styles.button}
-          onPress={() => Linking.openURL("https://wa.me/22990291067?text=Bonjour, je suis intéressé(e) par l'annonce.")}
-          
-
+          onPress={() =>
+            Linking.openURL(
+              "https://wa.me/22990291067?text=Bonjour, je suis intéressé(e) par l'annonce."
+            )
+          }
         >
           <Text style={styles.buttonText}>Prendre contact</Text>
+          <AntDesign name="arrowright" size={24} color="white" />
         </TouchableOpacity>
       </View>
     </View>
@@ -83,20 +99,17 @@ const styles = StyleSheet.create({
     backgroundColor: "white",
   },
 
-  icone_back:{
-    position:'absolute',
-    top:50,
-    left:20,
+  icone_back: {
+    position: "absolute",
+    top: 50,
+    left: 20,
     backgroundColor: Colors.light,
-   
+
     padding: 8,
-    borderRadius:'100%',
+    borderRadius: "100%",
     alignItems: "center",
-    zIndex:10,  
- 
+    zIndex: 10,
   },
-
-
 
   scrollContainer: {
     paddingBottom: 100,
@@ -108,8 +121,6 @@ const styles = StyleSheet.create({
     alignItems: "center",
     backgroundColor: Colors.primary,
   },
- 
-  
 
   noImageText: {
     textAlign: "center",
@@ -126,6 +137,17 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
     color: Colors.dark,
   },
+
+  virtualContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 8,
+    backgroundColor: Colors.primary,
+    borderRadius: 8,
+    padding: 6,
+  },
+
   container_adresse: {
     flexDirection: "row",
     alignItems: "center",
@@ -146,7 +168,7 @@ const styles = StyleSheet.create({
     color: Colors.dark,
   },
   description: {
-    fontSize: 16,
+    fontSize: 14,
     color: "gray",
     lineHeight: 24,
     textAlign: "justify",
@@ -161,8 +183,8 @@ const styles = StyleSheet.create({
     backgroundColor: "white",
     position: "absolute",
     bottom: 0,
-    height: 100,
-    borderTopWidth: 1,
+    height: 85,
+    borderTopWidth: 0.5,
     borderColor: Colors.dark,
     flexDirection: "row",
     alignItems: "center",
@@ -176,13 +198,16 @@ const styles = StyleSheet.create({
     fontWeight: "500",
   },
   button: {
-    backgroundColor: Colors.primary,
-    padding: 15,
-    borderRadius: 30,
+    flexDirection: "row",
     alignItems: "center",
+    justifyContent: "center",
+    gap: 5,
+    backgroundColor: Colors.primary,
+    padding:8,
+    borderRadius: 8,
   },
   buttonText: {
     color: "white",
-    fontSize: 20,
+    fontSize: 16,
   },
 });

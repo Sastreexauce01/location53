@@ -12,7 +12,7 @@ export default function RootLayout() {
       <Stack.Screen name="+not-found" />
       <Stack.Screen name="annonces/[id]" />
       <Stack.Screen name="virtual360/[id]" />
-      <Stack.Screen name="numerisation360/Numerisation" />
+ 
 
       <Stack.Screen name="annonces/SearchScreen" />
 
