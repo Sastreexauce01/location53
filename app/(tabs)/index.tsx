@@ -6,6 +6,7 @@ import {
   Platform,
   Pressable,
   ScrollView,
+  TouchableOpacity,
 } from "react-native";
 import { Colors } from "@/Components/Colors";
 import { useRouter } from "expo-router";
@@ -46,9 +47,11 @@ export default function Index() {
           <View style={styles.container_Appartement}>
             <Text style={styles.sectionTitle}>Quelques propriétés</Text>
             <AppartementList />
-            <Text style={styles.viewAll} onPress={() => router.push("/")}>
-              Voir toutes les propriétés
-            </Text>
+            <View>
+              <TouchableOpacity onPress={() => router.push("/inscription")}>
+                <Text style={styles.viewAll}> Voir toutes les propriétés</Text>
+              </TouchableOpacity>
+            </View>
           </View>
 
           {/* Section Destinations populaires */}

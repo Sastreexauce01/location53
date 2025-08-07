@@ -1,13 +1,9 @@
-import {
-  FlatList,
-  StyleSheet,
-  TouchableOpacity,
-} from "react-native";
+import { FlatList, StyleSheet, TouchableOpacity } from "react-native";
 import Data_Appartements from "@/Data/data-appartements.json";
 import AppartementItem from "@/Components/home/AppartementItem";
 import { useRouter } from "expo-router";
 const AppartementList = () => {
-    const router = useRouter();
+  const router = useRouter();
   return (
     <FlatList
       data={Data_Appartements}
@@ -16,7 +12,7 @@ const AppartementList = () => {
       horizontal
       keyExtractor={(item) => item.id.toString()}
       renderItem={({ item }) => (
-        <TouchableOpacity onPress={()=>router.push(`/annonces/${item.id}`)}>
+        <TouchableOpacity onPress={() => router.push(`/annonces/${item.id}`)}>
           {/* /annonces/${item.id} */}
           <AppartementItem item={item} />
         </TouchableOpacity>

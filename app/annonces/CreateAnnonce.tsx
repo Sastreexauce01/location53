@@ -22,7 +22,7 @@ import { useRef, useState } from "react";
 import Final_CreateAnnonce from "@/Components/Annonces/Final_CreateAnnonce";
 
 const CreateAnnonce = () => {
-  const [step, setStep] = useState<number>(5);
+  const [step, setStep] = useState<number>(1);
   const [modalVisible, setModalVisible] = useState(false);
   const scrollViewRef = useRef<ScrollView | null>(null);
 
