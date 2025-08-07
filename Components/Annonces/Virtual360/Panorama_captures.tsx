@@ -21,7 +21,7 @@ import { DeviceMotion } from "expo-sensors";
 import { Colors } from "../../Colors";
 import { EventSubscription } from "expo-modules-core";
 import CircularProgress from "react-native-circular-progress-indicator";
-import Svg, { Line } from "react-native-svg";
+
 
 
 // Import de l'atom (à définir selon votre structure)

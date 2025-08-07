@@ -13,10 +13,9 @@ import EvilIcons from "@expo/vector-icons/EvilIcons";
 import AppartementList from "@/Components/home/AppartementList";
 import DestinationList from "@/Components/home/DestinationList";
 
-
 export default function Index() {
   const router = useRouter();
- 
+
   return (
     <KeyboardAvoidingView
       behavior={Platform.OS === "ios" ? "padding" : undefined}
@@ -28,26 +27,28 @@ export default function Index() {
         showsVerticalScrollIndicator={false}
       >
         <View style={styles.container}>
-
           {/* Section Input */}
           <Pressable
             style={styles.container_input}
-            onPress={() => router.push("/annonces/SearchScreen")}
+            onPress={() => router.push("/recherche/SearchScreen")}
             // recherche
-           // Précharge la page Screen/annonces/SearchScreen
+            // Précharge la page Screen/annonces/SearchScreen
           >
             <EvilIcons name="location" size={24} color={Colors.dark} />
             <View style={styles.input}>
-              <Text style={{opacity:0.9, color:'grey'}}>Destinations...</Text>
+              <Text style={{ opacity: 0.9, color: "grey" }}>
+                Destinations...
+              </Text>
             </View>
-          
           </Pressable>
 
           {/* Section Appartement */}
           <View style={styles.container_Appartement}>
             <Text style={styles.sectionTitle}>Quelques propriétés</Text>
             <AppartementList />
-            <Text style={styles.viewAll} onPress={()=>router.push("/")}>Voir toutes les propriétés</Text>
+            <Text style={styles.viewAll} onPress={() => router.push("/")}>
+              Voir toutes les propriétés
+            </Text>
           </View>
 
           {/* Section Destinations populaires */}
@@ -85,7 +86,7 @@ const styles = StyleSheet.create({
 
   input: {
     paddingHorizontal: 10,
-   // backgroundColor: Colors.light,
+    // backgroundColor: Colors.light,
   },
 
   scrollContainer: {

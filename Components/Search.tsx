@@ -15,6 +15,7 @@ import {
 import _ from "lodash";
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 import * as Location from "expo-location";
+import { useRouter } from "expo-router";
 import { Colors } from "@/Components/Colors";
 import { useState, useEffect, useRef } from "react";
 
@@ -59,16 +60,18 @@ interface RecentSearch {
   timestamp: number;
 }
 
-const Search: React.FC<SearchProps> = ({ 
-  searchQuery, 
+const Search: React.FC<SearchProps> = ({
+  searchQuery,
   setSearchQuery,
   onLocationSelect,
   placeholder = "Rechercher votre lieu...",
   showCurrentLocation = true,
-  maxSuggestions = 8,
-  countryCodes = "bj,fr,ci,sn,tg,gh,ng,ml,bf"
+  maxSuggestions = 12,
+  countryCodes,
 }) => {
-  const [location, setLocation] = useState<Location.LocationObjectCoords | null>(null);
+  const router = useRouter();
+  const [location, setLocation] =
+    useState<Location.LocationObjectCoords | null>(null);
   const [citySuggestions, setCitySuggestions] = useState<NominatimPlace[]>([]);
   const [recentSearches, setRecentSearches] = useState<RecentSearch[]>([]);
   const [loading, setLoading] = useState(false);
@@ -84,19 +87,20 @@ const Search: React.FC<SearchProps> = ({
     if (!address) return displayName;
 
     const parts = [];
-    
+
     // Numéro et rue
     if (address.house_number) parts.push(address.house_number);
     if (address.road) parts.push(address.road);
-    
+
     // Ville
-    const city = address.city || address.town || address.village || address.municipality;
+    const city =
+      address.city || address.town || address.village || address.municipality;
     if (city) parts.push(city);
-    
+
     // Région
     const region = address.state || address.region;
     if (region && region !== city) parts.push(region);
-    
+
     // Pays
     if (address.country) parts.push(address.country);
 
@@ -104,7 +108,10 @@ const Search: React.FC<SearchProps> = ({
   };
 
   // Obtenir l'adresse à partir des coordonnées GPS
-  const getAddressFromCoords = async (latitude: number, longitude: number): Promise<string | null> => {
+  const getAddressFromCoords = async (
+    latitude: number,
+    longitude: number
+  ): Promise<string | null> => {
     try {
       const url = new URL("https://nominatim.openstreetmap.org/reverse");
       url.searchParams.append("lat", latitude.toString());
@@ -152,12 +159,15 @@ const Search: React.FC<SearchProps> = ({
           "Nous avons besoin d'accéder à votre localisation pour vous aider.",
           [
             { text: "Annuler", style: "cancel" },
-            { 
-              text: "Paramètres", 
+            {
+              text: "Paramètres",
               onPress: () => {
-                Alert.alert("Information", "Activez la localisation dans les paramètres de votre appareil.");
-              }
-            }
+                Alert.alert(
+                  "Information",
+                  "Activez la localisation dans les paramètres de votre appareil."
+                );
+              },
+            },
           ]
         );
         return;
@@ -166,7 +176,7 @@ const Search: React.FC<SearchProps> = ({
       const userLocation = await Location.getCurrentPositionAsync({
         accuracy: Location.Accuracy.High,
       });
-      
+
       setLocation(userLocation.coords);
 
       const address = await getAddressFromCoords(
@@ -176,7 +186,7 @@ const Search: React.FC<SearchProps> = ({
 
       if (address) {
         setSearchQuery(address);
-        
+
         // Ajouter aux recherches récentes
         const newSearch: RecentSearch = {
           id: Date.now().toString(),
@@ -188,7 +198,7 @@ const Search: React.FC<SearchProps> = ({
           timestamp: Date.now(),
         };
 
-        setRecentSearches(prev => [newSearch, ...prev.slice(0, 4)]);
+        setRecentSearches((prev) => [newSearch, ...prev.slice(0, 4)]);
 
         // Callback si fourni
         if (onLocationSelect) {
@@ -205,10 +215,18 @@ const Search: React.FC<SearchProps> = ({
         Keyboard.dismiss();
         setCitySuggestions([]);
         setIsFocused(false);
+
+        // Navigation vers les résultats de recherche
+
+        router.push(
+          `/recherche/SearchResults?query=${encodeURIComponent(address)}`
+        );
       }
     } catch (error) {
       console.error("Erreur de géolocalisation:", error);
-      setError("Impossible d'obtenir votre position. Vérifiez que la localisation est activée.");
+      setError(
+        "Impossible d'obtenir votre position. Vérifiez que la localisation est activée."
+      );
     } finally {
       setLocationLoading(false);
     }
@@ -237,7 +255,11 @@ const Search: React.FC<SearchProps> = ({
       url.searchParams.append("addressdetails", "1");
       url.searchParams.append("limit", maxSuggestions.toString());
       url.searchParams.append("accept-language", "fr,en");
-      url.searchParams.append("countrycodes", countryCodes);
+
+      // Ajouter countryCodes seulement si fourni
+      if (countryCodes) {
+        url.searchParams.append("countrycodes", countryCodes);
+      }
 
       const response = await fetch(url.toString(), {
         method: "GET",
@@ -249,7 +271,9 @@ const Search: React.FC<SearchProps> = ({
 
       if (!response.ok) {
         if (response.status === 429) {
-          throw new Error("Trop de requêtes. Veuillez patienter quelques secondes.");
+          throw new Error(
+            "Trop de requêtes. Veuillez patienter quelques secondes."
+          );
         }
         throw new Error(`Erreur ${response.status}`);
       }
@@ -259,19 +283,20 @@ const Search: React.FC<SearchProps> = ({
       // Filtrer et trier les résultats
       const filteredResults = data
         .filter((place: NominatimPlace) => {
-          return place.address && (
-            place.address.city || 
-            place.address.town || 
-            place.address.village || 
-            place.address.municipality ||
-            place.address.road
+          return (
+            place.address &&
+            (place.address.city ||
+              place.address.town ||
+              place.address.village ||
+              place.address.municipality ||
+              place.address.road)
           );
         })
         .sort((a: NominatimPlace, b: NominatimPlace) => {
           // Trier par pertinence
           const aIsCity = !!(a.address?.city || a.address?.town);
           const bIsCity = !!(b.address?.city || b.address?.town);
-          
+
           if (aIsCity && !bIsCity) return -1;
           if (!aIsCity && bIsCity) return 1;
           return 0;
@@ -279,7 +304,7 @@ const Search: React.FC<SearchProps> = ({
 
       setCitySuggestions(filteredResults);
     } catch (error: any) {
-      if (error.name !== 'AbortError') {
+      if (error.name !== "AbortError") {
         console.error("Erreur lors de la recherche:", error);
         setError(error.message || "Erreur lors de la recherche");
         setCitySuggestions([]);
@@ -290,7 +315,9 @@ const Search: React.FC<SearchProps> = ({
   };
 
   // Créer le debounce une seule fois avec useRef et useEffect
-  const debouncedFetchCities = useRef<_.DebouncedFunc<(query: string) => void> | null>(null);
+  const debouncedFetchCities = useRef<_.DebouncedFunc<
+    (query: string) => void
+  > | null>(null);
 
   useEffect(() => {
     if (!debouncedFetchCities.current) {
@@ -333,7 +360,10 @@ const Search: React.FC<SearchProps> = ({
       timestamp: Date.now(),
     };
 
-    setRecentSearches(prev => [newSearch, ...prev.filter(s => s.address !== formattedAddress).slice(0, 4)]);
+    setRecentSearches((prev) => [
+      newSearch,
+      ...prev.filter((s) => s.address !== formattedAddress).slice(0, 4),
+    ]);
 
     // Callback si fourni
     if (onLocationSelect) {
@@ -349,11 +379,16 @@ const Search: React.FC<SearchProps> = ({
     setCitySuggestions([]);
     setIsFocused(false);
     Keyboard.dismiss();
+
+    // Navigation vers les résultats de recherche
+    router.push(
+      `/recherche/SearchResults?query=${encodeURIComponent(formattedAddress)}`
+    );
   };
 
   const handleRecentSelect = (recent: RecentSearch) => {
     setSearchQuery(recent.address);
-    
+
     if (onLocationSelect) {
       onLocationSelect({
         address: recent.address,
@@ -364,10 +399,15 @@ const Search: React.FC<SearchProps> = ({
     setCitySuggestions([]);
     setIsFocused(false);
     Keyboard.dismiss();
+
+    // Navigation vers les résultats de recherche
+    router.push(
+      `/recherche/SearchResults?query=${encodeURIComponent(recent.address)}`
+    );
   };
 
   const removeRecentSearch = (id: string) => {
-    setRecentSearches(prev => prev.filter(search => search.id !== id));
+    setRecentSearches((prev) => prev.filter((search) => search.id !== id));
   };
 
   const clearSearch = () => {
@@ -408,8 +448,17 @@ const Search: React.FC<SearchProps> = ({
       style={styles.container}
     >
       {/* Barre de recherche */}
-      <View style={[styles.container_input, isFocused && styles.container_input_focused]}>
-        <MaterialIcons name="search" size={20} color={isFocused ? Colors.primary : Colors.gray} />
+      <View
+        style={[
+          styles.container_input,
+          isFocused && styles.container_input_focused,
+        ]}
+      >
+        <MaterialIcons
+          name="search"
+          size={20}
+          color={isFocused ? Colors.primary : Colors.gray}
+        />
         <TextInput
           ref={inputRef}
           style={styles.input}
@@ -427,7 +476,11 @@ const Search: React.FC<SearchProps> = ({
           blurOnSubmit={false}
         />
         {searchQuery.length > 0 && (
-          <Pressable onPress={clearSearch} hitSlop={8} style={styles.clearButton}>
+          <Pressable
+            onPress={clearSearch}
+            hitSlop={8}
+            style={styles.clearButton}
+          >
             <MaterialIcons name="clear" size={18} color={Colors.gray} />
           </Pressable>
         )}
@@ -436,7 +489,11 @@ const Search: React.FC<SearchProps> = ({
       {/* Message d'erreur */}
       {error && (
         <View style={styles.errorContainer}>
-          <MaterialIcons name="error-outline" size={16} color={Colors.error || '#FF6B6B'} />
+          <MaterialIcons
+            name="error-outline"
+            size={16}
+            color={Colors.error || "#FF6B6B"}
+          />
           <Text style={styles.errorText}>{error}</Text>
         </View>
       )}
@@ -451,10 +508,16 @@ const Search: React.FC<SearchProps> = ({
           {locationLoading ? (
             <ActivityIndicator size="small" color={Colors.primary} />
           ) : (
-            <MaterialIcons name="my-location" size={16} color={Colors.primary} />
+            <MaterialIcons
+              name="my-location"
+              size={16}
+              color={Colors.primary}
+            />
           )}
           <Text style={styles.locationText}>
-            {locationLoading ? "Localisation..." : "Utiliser ma position actuelle"}
+            {locationLoading
+              ? "Localisation..."
+              : "Utiliser ma position actuelle"}
           </Text>
         </TouchableOpacity>
       )}
@@ -505,33 +568,42 @@ const Search: React.FC<SearchProps> = ({
                 style={styles.suggestionItem}
                 onPress={() => handleCitySelect(item)}
               >
-                <MaterialIcons 
-                  name={getLocationIcon(item)} 
-                  size={18} 
-                  color={Colors.primary} 
+                <MaterialIcons
+                  name={getLocationIcon(item)}
+                  size={18}
+                  color={Colors.primary}
                 />
                 <Text style={styles.suggestionText} numberOfLines={2}>
                   {formatDisplayName(item)}
                 </Text>
-                <MaterialIcons name="north-west" size={14} color={Colors.gray} />
+                <MaterialIcons
+                  name="north-west"
+                  size={14}
+                  color={Colors.gray}
+                />
               </Pressable>
             )}
             showsVerticalScrollIndicator={false}
             keyboardShouldPersistTaps="handled"
-            scrollEnabled={citySuggestions.length > 4}
+            scrollEnabled={citySuggestions.length > 10}
             style={styles.suggestionsList}
           />
         </View>
       )}
 
       {/* Pas de résultats */}
-      {searchQuery.length >= 3 && !loading && citySuggestions.length === 0 && !error && (
-        <View style={styles.noResultsContainer}>
-          <MaterialIcons name="search-off" size={32} color={Colors.gray} />
-          {/* <Text style={styles.noResultsText}>Aucun résultat trouvé</Text>
-          <Text style={styles.noResultsSubtext}>Essayez avec des termes différents</Text> */}
-        </View>
-      )}
+      {searchQuery.length >= 3 &&
+        !loading &&
+        citySuggestions.length === 0 &&
+        !error && (
+          <View style={styles.noResultsContainer}>
+            <MaterialIcons name="search-off" size={32} color={Colors.gray} />
+            <Text style={styles.noResultsText}>Aucun résultat trouvé</Text>
+            <Text style={styles.noResultsSubtext}>
+              Essayez avec des termes différents
+            </Text>
+          </View>
+        )}
     </KeyboardAvoidingView>
   );
 };
@@ -551,7 +623,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     paddingVertical: 10,
     borderWidth: 1,
-    borderColor: 'transparent',
+    borderColor: "transparent",
     gap: 8,
   },
 
@@ -586,7 +658,7 @@ const styles = StyleSheet.create({
     gap: 8,
     paddingVertical: 8,
     paddingHorizontal: 12,
-    backgroundColor: '#FFF5F5',
+    backgroundColor: "#FFF5F5",
     borderRadius: 8,
     marginTop: 8,
   },
@@ -594,7 +666,7 @@ const styles = StyleSheet.create({
   errorText: {
     flex: 1,
     fontSize: 12,
-    color: Colors.error || '#FF6B6B',
+    color: Colors.error || "#FF6B6B",
   },
 
   container_location_actuelle: {
@@ -604,10 +676,10 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     paddingHorizontal: 12,
     marginTop: 8,
-    backgroundColor: Colors.primary + '10',
+    backgroundColor: Colors.primary + "10",
     borderRadius: 8,
     borderWidth: 1,
-    borderColor: Colors.primary + '20',
+    borderColor: Colors.primary + "20",
   },
 
   locationText: {
@@ -669,13 +741,13 @@ const styles = StyleSheet.create({
 
   suggestionsContainer: {
     marginTop: 8,
-    backgroundColor: Colors.light + '50',
+    backgroundColor: Colors.light + "50",
     borderRadius: 8,
-    overflow: 'hidden',
+    overflow: "hidden",
   },
 
   suggestionsList: {
-    maxHeight: 240,
+    maxHeight: "auto",
   },
 
   suggestionItem: {
@@ -685,7 +757,7 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     paddingHorizontal: 12,
     borderBottomWidth: 0.5,
-    borderBottomColor: Colors.gray + '30',
+    borderBottomColor: Colors.gray + "30",
   },
 
   suggestionText: {

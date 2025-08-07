@@ -85,6 +85,7 @@ export const Data_Destination = [
 ];
 
 export const Data_TypeAnnonce = ["Location", "Vente"];
+
 export const Data_Categorie_Appartement = [
   "Appartement",
   "Maison",

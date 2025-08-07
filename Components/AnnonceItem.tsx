@@ -11,14 +11,10 @@ import { Colors } from "./Colors";
 import { SimpleLineIcons } from "@expo/vector-icons";
 import Options_Modal from "./Options_Modal";
 import Loading from "@/assets/ui/Loading";
+import { AnnonceType } from "@/assets/Types/type";
 
 type Props = {
-  item: {
-    id: number;
-    nomAnnonce: string;
-    image: string[];
-    date_creation: string;
-  };
+  item:AnnonceType
 };
 
 export const AnnonceItem = ({ item }: Props) => {

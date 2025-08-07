@@ -7,8 +7,7 @@ import {
   FlatList,
   TouchableOpacity,
 } from "react-native";
-import { Feather, EvilIcons } from "@expo/vector-icons";
-
+import { Feather, MaterialIcons } from "@expo/vector-icons";
 import { router } from "expo-router";
 import { Colors } from "@/Components/Colors";
 import AppartementItem from "@/Components/home/AppartementItem";
@@ -25,98 +24,296 @@ const ListResults: React.FC<ListResultsProps> = ({
   queryString,
   Appartement_filtre,
 }) => {
-  return (
-    <>
-      <View style={styles.container_input}>
-        <Text>{queryString}</Text>
-        {/* Icône pour rediriger vers la barre de recherche */}
-        <Pressable onPress={() => router.push("/annonces/SearchScreen")}>
-          <EvilIcons name="pencil" size={20} color="black" />
-        </Pressable>
+  const handleEditSearch = () => {
+    router.push("/annonces/SearchScreen");
+  };
+
+  const handleItemPress = (item: AnnonceType) => {
+    // Navigation vers le détail de l'annonce
+    router.push(`/annonces/${item.id}`);
+  };
+
+  const renderHeader = () => (
+    <View style={styles.headerContainer}>
+      {/* Barre de recherche modifiable */}
+      <Pressable style={styles.searchContainer} onPress={handleEditSearch}>
+        <View style={styles.searchContent}>
+          <MaterialIcons name="search" size={20} color={Colors.gray} />
+          <Text style={styles.searchText} numberOfLines={1}>
+            {queryString || "Rechercher..."}
+          </Text>
+        </View>
+        <MaterialIcons name="edit" size={18} color={Colors.primary} />
+      </Pressable>
+
+      {/* Statistiques des résultats */}
+      <View style={styles.statsContainer}>
+        <View style={styles.statsContent}>
+          <MaterialIcons name="location-on" size={16} color={Colors.primary} />
+          <Text style={styles.statsText}>
+            {Appartement_filtre.length} propriété
+            {Appartement_filtre.length > 1 ? "s" : ""} trouvée
+            {Appartement_filtre.length > 1 ? "s" : ""}
+          </Text>
+        </View>
+
+        {/* Filtres rapides */}
+        <View style={styles.quickFilters}>
+          <Pressable style={styles.filterButton}>
+            <MaterialIcons name="tune" size={16} color={Colors.primary} />
+            <Text style={styles.filterText}>Filtres</Text>
+          </Pressable>
+
+          <Pressable style={styles.sortButton}>
+            <MaterialIcons name="sort" size={16} color={Colors.gray} />
+            <Text style={styles.sortText}>Trier</Text>
+          </Pressable>
+        </View>
       </View>
+    </View>
+  );
 
-      {/* Liste des annonces filtrées */}
-      <Text style={{ fontSize: 12, textAlign: "center", marginVertical: 15 }}>
-        {Appartement_filtre.length} Propriété(s) trouvée(s)
+  const renderItem = ({
+    item,
+    index,
+  }: {
+    item: AnnonceType;
+    index: number;
+  }) => (
+    <TouchableOpacity
+      style={[styles.itemContainer, { marginTop: index === 0 ? 0 : 16 }]}
+      onPress={() => handleItemPress(item)}
+      activeOpacity={0.95}
+    >
+      <AppartementItem item={item} />
+    </TouchableOpacity>
+  );
+
+  const renderEmptyState = () => (
+    <View style={styles.emptyContainer}>
+      <MaterialIcons name="search-off" size={48} color={Colors.gray} />
+      <Text style={styles.emptyTitle}>Aucun résultat trouvé</Text>
+      <Text style={styles.emptySubtitle}>
+        Essayez de modifier vos critères de recherche
       </Text>
+      <Pressable style={styles.newSearchButton} onPress={handleEditSearch}>
+        <MaterialIcons name="refresh" size={16} color="white" />
+        <Text style={styles.newSearchText}>Nouvelle recherche</Text>
+      </Pressable>
+    </View>
+  );
 
-      {Appartement_filtre.length > 0 ? (
-        <FlatList
-          data={Appartement_filtre}
-          contentContainerStyle={styles.flatListContainer}
-          keyExtractor={(item) => item.id.toString()}
-          renderItem={({ item }) => (
-            <TouchableOpacity>
-              <AppartementItem item={item} />
-            </TouchableOpacity>
-          )}
-          showsVerticalScrollIndicator={true}
-          style={{ flex: 1 }} // Permet à la FlatList de prendre toute la place
-        />
-      ) : (
-        <Text style={styles.noResults}>Aucun résultat trouvé.</Text>
-      )}
+  if (Appartement_filtre.length === 0) {
+    return (
+      <>
+        {renderHeader()}
+        {renderEmptyState()}
+        {/* Bouton Map */}
+        <TouchableOpacity
+          style={styles.mapButton}
+          onPress={() => setOpen(false)}
+        >
+          <Feather name="map" size={18} color="white" />
+          <Text style={styles.mapButtonText}>Voir sur la carte</Text>
+        </TouchableOpacity>
+      </>
+    );
+  }
 
-      {/* Section pour aller vers la carte */}
-      <TouchableOpacity
-        style={styles.container_maps}
-        onPress={() => setOpen(false)} // Correctif ici !
-      >
-        <Feather name="map" size={20} color="black" />
-        <Text>Map</Text>
+  return (
+    <View style={styles.container}>
+      <FlatList
+        data={Appartement_filtre}
+        ListHeaderComponent={renderHeader}
+        keyExtractor={(item) => item.id.toString()}
+        renderItem={renderItem}
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={styles.listContainer}
+        stickyHeaderIndices={[0]}
+        removeClippedSubviews={true}
+        maxToRenderPerBatch={10}
+        windowSize={10}
+        initialNumToRender={5}
+      />
+
+      {/* Bouton Map flottant */}
+      <TouchableOpacity style={styles.mapButton} onPress={() => setOpen(false)}>
+        <Feather name="map" size={18} color="white" />
+        <Text style={styles.mapButtonText}>Carte</Text>
       </TouchableOpacity>
-    </>
+    </View>
   );
 };
 
 export default ListResults;
 
 const styles = StyleSheet.create({
-  container_input: {
+  container: {
+    flex: 1,
+  },
+
+  headerContainer: {
+    backgroundColor: "white",
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    
+    // // borderBottomWidth: 1,
+    // borderBottomColor: Colors.light,
+  },
+
+  searchContainer: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    borderWidth: 0.5,
-    borderColor: Colors.dark,
-    borderRadius: 15,
-    padding: 15,
-    margin: 15,
+    backgroundColor: Colors.light,
+    borderRadius: 12,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    marginBottom: 12,
   },
 
-  flatListContainer: {
-    gap: 20,
-    alignItems: "center",
-    paddingBottom: 100,
-  },
-
-  noResults: {
-    marginTop: 20,
-    textAlign: "center",
-    fontSize: 16,
-    color: Colors.dark,
-  },
-
-  container_maps: {
-    position: "absolute",
-    alignSelf: "center",
-    bottom: 20,
-    backgroundColor: "rgba(255, 255, 255, 0.9)",
-    borderWidth: 1,
-    borderColor: Colors.dark,
-    borderRadius: 25,
+  searchContent: {
+    flex: 1,
     flexDirection: "row",
     alignItems: "center",
     gap: 8,
-    paddingHorizontal: 15,
-    paddingVertical: 8,
+  },
 
-    // Ombre pour iOS
+  searchText: {
+    flex: 1,
+    fontSize: 14,
+    color: Colors.dark,
+  },
+
+  statsContainer: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+  },
+
+  statsContent: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 4,
+  },
+
+  statsText: {
+    fontSize: 12,
+    color: Colors.gray,
+    fontWeight: "500",
+  },
+
+  quickFilters: {
+    flexDirection: "row",
+    gap: 8,
+  },
+
+  filterButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 4,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    backgroundColor: Colors.primary + "10",
+    borderRadius: 16,
+  },
+
+  filterText: {
+    fontSize: 12,
+    color: Colors.primary,
+    fontWeight: "500",
+  },
+
+  sortButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 4,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    backgroundColor: Colors.light,
+    borderRadius: 16,
+  },
+
+  sortText: {
+    fontSize: 12,
+    color: Colors.gray,
+    fontWeight: "500",
+  },
+
+  listContainer: {
+    paddingHorizontal: 16,
+    paddingBottom: 100,
+  },
+
+  itemContainer: {
+    width: "auto",
+  },
+
+  emptyContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    paddingHorizontal: 32,
+    paddingVertical: 64,
+  },
+
+  emptyTitle: {
+    fontSize: 18,
+    fontWeight: "600",
+    color: Colors.dark,
+    marginTop: 16,
+    marginBottom: 8,
+    textAlign: "center",
+  },
+
+  emptySubtitle: {
+    fontSize: 14,
+    color: Colors.gray,
+    textAlign: "center",
+    lineHeight: 20,
+    marginBottom: 24,
+  },
+
+  newSearchButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+    backgroundColor: Colors.primary,
+    paddingHorizontal: 20,
+    paddingVertical: 12,
+    borderRadius: 24,
+  },
+
+  newSearchText: {
+    color: "white",
+    fontSize: 14,
+    fontWeight: "600",
+  },
+
+  mapButton: {
+    position: "absolute",
+    bottom: 20,
+    alignSelf: "center",
+    backgroundColor: Colors.primary,
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+    paddingHorizontal: 20,
+    paddingVertical: 12,
+    borderRadius: 24,
     shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.2,
-    shadowRadius: 4,
+    shadowOffset: {
+      width: 0,
+      height: 4,
+    },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 8,
+  },
 
-    // Ombre pour Android
-    elevation: 5,
+  mapButtonText: {
+    color: "white",
+    fontSize: 14,
+    fontWeight: "600",
   },
 });

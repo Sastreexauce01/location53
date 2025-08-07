@@ -13,39 +13,17 @@ const SearchScreen = () => {
   return (
     <SafeAreaView style={{ flex: 1 }}>
       <View style={styles.container}>
-        {/* Première section */}
+        <View style={styles.container_title}>
+          <Pressable onPress={() => router.back()}>
+            <Fontisto name="angle-left" size={20} color={Colors.primary} />
+          </Pressable>
 
-        <View style={styles.container_first}>
-          {/* Section Title */}
-          <View style={styles.container_title}>
-            <Pressable onPress={() => router.back()}>
-              <Fontisto name="angle-left" size={20} color={Colors.primary} />
-            </Pressable>
-
-            <View style={{ flex: 1, alignItems: "center" }}>
-              <Text style={styles.title}>Destination</Text>
-            </View>
+          <View style={{ flex: 1, alignItems: "center" }}>
+            <Text style={styles.title}>Destination</Text>
           </View>
-
-          {/* Composant de recherche */}
-          <Search searchQuery={searchQuery} setSearchQuery={setSearchQuery} />
         </View>
 
-        {/* Section Button Rechercher */}
-        <Pressable
-          style={[
-            styles.button,
-            searchQuery.length < 1 && styles.buttonDisabled,
-          ]}
-          disabled={searchQuery.length < 1}
-          onPress={() =>
-            router.push(
-              `/annonces/SearchResults?query=${encodeURIComponent(searchQuery)}`
-            )
-          } // Navigation avec paramètre /Screen/annonces/SearchResults?query=${searchQuery}
-        >
-          <Text style={styles.buttonText}>Rechercher</Text>
-        </Pressable>
+        <Search searchQuery={searchQuery} setSearchQuery={setSearchQuery} />
       </View>
     </SafeAreaView>
   );
@@ -56,7 +34,10 @@ export default SearchScreen;
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    paddingTop: 50,
     padding: 10,
+    gap: 50,
+    backgroundColor: "white",
     justifyContent: "space-between",
   },
 

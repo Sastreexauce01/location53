@@ -1,5 +1,5 @@
 import { Text, View, StyleSheet, SafeAreaView, Pressable } from "react-native";
-import { Fontisto } from "@expo/vector-icons";
+import { Fontisto, MaterialIcons } from "@expo/vector-icons";
 import { Colors } from "@/Components/Colors";
 import { router, useLocalSearchParams } from "expo-router";
 import ListResults from "@/Components/Annonces/ListResults";
@@ -9,110 +9,190 @@ import Data_Appartements from "@/Data/data-appartements.json";
 
 const SearchResults = () => {
   const [isListView, setIsListView] = useState(true);
-
   const { query } = useLocalSearchParams();
 
-  // Vérification et conversion de `query` avec gestion des erreurs
+  // ✅ Fonction fuzzyMatch définie AVANT son utilisation
+  const fuzzyMatch = (text: string, term: string): boolean => {
+    if (term.length < 3) return false;
+    // Vérifier si les 3 premières lettres correspondent
+    return text.substring(0, 3) === term.substring(0, 3);
+  };
+
+  // Amélioration de la gestion des paramètres de recherche
   const queryString = useMemo(() => {
     if (!query) return "";
 
-    // Si query est un tableau, prendre le premier élément
-    if (Array.isArray(query)) {
-      return query[0] || "";
-    }
-
-    // Si query est une string, la décoder si nécessaire
     try {
-      return decodeURIComponent(query);
+      // Si query est un tableau, prendre le premier élément
+      const queryValue = Array.isArray(query) ? query[0] : query;
+
+      // Décoder l'URI et nettoyer les espaces
+      return decodeURIComponent(queryValue || "").trim();
     } catch (error) {
       console.warn("Erreur lors du décodage de la query:", error);
-      return query;
+      return Array.isArray(query) ? query[0] || "" : query || "";
     }
   }, [query]);
 
-  // Filtrer les appartements par adresse avec recherche améliorée
+  // Amélioration de l'algorithme de filtrage avec recherche intelligente
   const Appartement_filtre = useMemo(() => {
     if (!queryString.trim()) return Data_Appartements;
 
+    // Diviser la requête en mots-clés et nettoyer
     const searchTerms = queryString
       .toLowerCase()
-      .split(",")
-      .map((term) => term.trim());
+      .split(/[,\s]+/) // Diviser par virgules et espaces
+      .map((term) => term.trim())
+      .filter((term) => term.length > 0); // Supprimer les termes vides
 
     return Data_Appartements.filter((item) => {
       if (!item.adresse) return false;
 
       const adresseLower = item.adresse.toLowerCase();
 
-      // Recherche si au moins un terme de recherche est trouvé dans l'adresse
-      return searchTerms.some((term) => term && adresseLower.includes(term));
+      // Recherche flexible : au moins un terme doit correspondre
+      return searchTerms.some((term) => {
+        // Recherche exacte ou partielle
+        return (
+          adresseLower.includes(term) ||
+          term.includes(adresseLower) ||
+          // Recherche phonétique simple (optionnel)
+          fuzzyMatch(adresseLower, term)
+        );
+      });
     });
+  }, [queryString, fuzzyMatch]); // ✅ Ajout de fuzzyMatch dans les dépendances
+
+  // Amélioration de l'affichage du titre avec ellipsis intelligent
+  const displayTitle = useMemo(() => {
+    if (!queryString) return "Recherche";
+
+    if (queryString.length <= 35) {
+      return queryString;
+    }
+
+    // Tronquer au dernier mot complet si possible
+    const truncated = queryString.substring(0, 32);
+    const lastSpaceIndex = truncated.lastIndexOf(" ");
+
+    if (lastSpaceIndex > 20) {
+      return truncated.substring(0, lastSpaceIndex) + "...";
+    }
+
+    return truncated + "...";
   }, [queryString]);
 
-  // Titre affiché avec limitation de caractères
-  const displayTitle = useMemo(() => {
-    if (queryString.length > 30) {
-      return queryString.substring(0, 27) + "...";
+  // Messages contextuels selon le type de recherche
+  const getNoResultsMessage = () => {
+    if (!queryString) {
+      return "Veuillez effectuer une recherche";
     }
-    return queryString;
-  }, [queryString]);
+
+    if (queryString.length < 3) {
+      return "Votre recherche est trop courte. Essayez avec au moins 3 caractères.";
+    }
+
+    return "Aucun appartement trouvé pour cette recherche. Essayez avec des termes différents ou une zone plus large.";
+  };
 
   const handleGoBack = () => {
-    router.back();
+    if (router.canGoBack()) {
+      router.back();
+    } else {
+      router.replace("/");
+    }
+  };
+
+  const handleNewSearch = () => {
+    router.push("/recherche/SearchScreen"); // Rediriger vers la page de recherche
   };
 
   return (
     <SafeAreaView style={styles.safeArea}>
       <View style={styles.container}>
-        {/* Header avec titre de recherche */}
-        <View style={styles.container_head}>
-          <View style={styles.container_title}>
+        {/* Header amélioré */}
+        <View style={styles.header}>
+          <View style={styles.headerContent}>
             <Pressable
               onPress={handleGoBack}
               style={styles.backButton}
               hitSlop={8}
             >
-              <Fontisto name="angle-left" size={16} color={Colors.primary} />
+              <Fontisto name="angle-left" size={18} color={Colors.primary} />
             </Pressable>
 
-            <View style={styles.titleContainer}>
+            <View style={styles.titleSection}>
               <Text style={styles.title} numberOfLines={1}>
-                {displayTitle || "Recherche"}
+                {displayTitle}
               </Text>
               {Appartement_filtre.length > 0 && (
                 <Text style={styles.resultCount}>
                   {Appartement_filtre.length} résultat
+                  {Appartement_filtre.length > 1 ? "s" : ""} trouvé
                   {Appartement_filtre.length > 1 ? "s" : ""}
                 </Text>
               )}
             </View>
+
+            {/* Bouton de basculement Vue Liste/Carte */}
+            {Appartement_filtre.length > 0 && (
+              <Pressable
+                onPress={() => setIsListView(!isListView)}
+                style={styles.viewToggleButton}
+                hitSlop={8}
+              >
+                <MaterialIcons
+                  name={isListView ? "map" : "list"}
+                  size={20}
+                  color={Colors.primary}
+                />
+              </Pressable>
+            )}
           </View>
         </View>
 
-        {/* Affichage conditionnel des résultats */}
+        {/* Contenu principal */}
         {Appartement_filtre.length === 0 ? (
           <View style={styles.noResultsContainer}>
-            <Text style={styles.noResultsTitle}>Aucun résultat trouvé</Text>
-            <Text style={styles.noResultsText}>
-              Essayez de modifier votre recherche ou de chercher dans une autre
-              zone.
-            </Text>
-            <Pressable style={styles.newSearchButton} onPress={handleGoBack}>
-              <Text style={styles.newSearchText}>Nouvelle recherche</Text>
-            </Pressable>
+            <MaterialIcons
+              name="search-off"
+              size={64}
+              color={Colors.gray}
+              style={styles.noResultsIcon}
+            />
+            <Text style={styles.noResultsTitle}>Aucun résultat</Text>
+            <Text style={styles.noResultsText}>{getNoResultsMessage()}</Text>
+
+            <View style={styles.noResultsActions}>
+              <Pressable
+                style={styles.newSearchButton}
+                onPress={handleNewSearch}
+              >
+                <MaterialIcons name="search" size={16} color="white" />
+                <Text style={styles.newSearchText}>Nouvelle recherche</Text>
+              </Pressable>
+
+              <Pressable style={styles.backButton2} onPress={handleGoBack}>
+                <Text style={styles.backButtonText}>Retour</Text>
+              </Pressable>
+            </View>
           </View>
-        ) : // Affichage en fonction de l'état `isListView`
-        isListView ? (
-          <ListResults
-            setOpen={setIsListView}
-            queryString={queryString}
-            Appartement_filtre={Appartement_filtre}
-          />
         ) : (
-          <MapsResults
-            setOpen={setIsListView}
-            Appartement_filtre={Appartement_filtre}
-          />
+          // Affichage des résultats
+          <>
+            {isListView ? (
+              <ListResults
+                setOpen={setIsListView}
+                queryString={queryString}
+                Appartement_filtre={Appartement_filtre}
+              />
+            ) : (
+              <MapsResults
+                setOpen={setIsListView}
+                Appartement_filtre={Appartement_filtre}
+              />
+            )}
+          </>
         )}
       </View>
     </SafeAreaView>
@@ -124,36 +204,49 @@ export default SearchResults;
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: "white",
   },
 
   container: {
     flex: 1,
-    paddingVertical: 10,
+    paddingTop: 50,
+    padding: 1,
+    gap: 50,
+    backgroundColor: "white",
+    justifyContent: "space-between",
   },
 
-  container_head: {
-    paddingBottom: 10,
-    borderBottomWidth: 0.5,
+  header: {
+    backgroundColor: "white",
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    borderBottomWidth: 1,
     borderBottomColor: Colors.light,
-    marginBottom: 10,
+    shadowColor: "#000",
+    shadowOffset: {
+      width: 0,
+      height: 1,
+    },
+    shadowOpacity: 0.05,
+    shadowRadius: 2,
+    elevation: 2,
   },
 
-  container_title: {
-    padding: 4,
+  headerContent: {
     flexDirection: "row",
     alignItems: "center",
+    justifyContent: "space-between",
   },
 
   backButton: {
     padding: 8,
-    marginRight: 8,
+    borderRadius: 8,
+    backgroundColor: Colors.light,
   },
 
-  titleContainer: {
+  titleSection: {
     flex: 1,
     alignItems: "center",
-    paddingRight: 32, // Compenser l'espace du bouton retour pour centrer
+    marginHorizontal: 16,
   },
 
   title: {
@@ -168,19 +261,31 @@ const styles = StyleSheet.create({
     color: Colors.primary,
     marginTop: 2,
     textAlign: "center",
+    fontWeight: "500",
   },
 
-  // Styles pour l'état "aucun résultat"
+  viewToggleButton: {
+    padding: 8,
+    borderRadius: 8,
+    backgroundColor: Colors.primary + "10",
+  },
+
+  // Styles améliorés pour "aucun résultat"
   noResultsContainer: {
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
-    paddingHorizontal: 40,
+    paddingHorizontal: 32,
+  },
+
+  noResultsIcon: {
+    marginBottom: 16,
+    opacity: 0.6,
   },
 
   noResultsTitle: {
-    fontSize: 18,
-    fontWeight: "600",
+    fontSize: 20,
+    fontWeight: "700",
     color: Colors.dark,
     marginBottom: 12,
     textAlign: "center",
@@ -188,21 +293,46 @@ const styles = StyleSheet.create({
 
   noResultsText: {
     fontSize: 14,
-    color: Colors.error,
+    color: Colors.gray,
     textAlign: "center",
     lineHeight: 20,
-    marginBottom: 24,
+    marginBottom: 32,
+    maxWidth: 280,
+  },
+
+  noResultsActions: {
+    width: "100%",
+    gap: 12,
   },
 
   newSearchButton: {
     backgroundColor: Colors.primary,
     paddingHorizontal: 24,
-    paddingVertical: 12,
-    borderRadius: 8,
+    paddingVertical: 14,
+    borderRadius: 12,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 8,
   },
 
   newSearchText: {
     color: "white",
+    fontSize: 16,
+    fontWeight: "600",
+  },
+
+  backButton2: {
+    paddingHorizontal: 24,
+    paddingVertical: 14,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: Colors.gray,
+    alignItems: "center",
+  },
+
+  backButtonText: {
+    color: Colors.gray,
     fontSize: 16,
     fontWeight: "500",
   },

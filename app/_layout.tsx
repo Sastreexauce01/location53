@@ -14,9 +14,7 @@ export default function RootLayout() {
       <Stack.Screen name="virtual360/[id]" />
  
 
-      <Stack.Screen name="annonces/SearchScreen" />
-
-      <Stack.Screen name="annonces/SearchResults" />
+   
       <Stack.Screen name="annonces/CreateAnnonce" />
 
       <Stack.Screen name="connexion/index" options={{ title: "Connexion" }} />
