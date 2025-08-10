@@ -25,6 +25,7 @@ export interface Image360 {
   description: string;
 }
 
+
 export interface Hotspot {
   id: string;
   yaw: number; // horizontal [-π à π]
@@ -33,9 +34,6 @@ export interface Hotspot {
   title: string;
   targetSceneId: string; // Pour type 'scene'
 }
-
-
-
 
 
 // Api pour la generattion d'image 360 

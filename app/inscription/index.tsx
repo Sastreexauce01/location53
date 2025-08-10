@@ -15,7 +15,7 @@ import {
 import { Image } from "expo-image";
 import { Colors } from "@/Components/Colors";
 import { useRouter } from "expo-router";
-import { MaterialIcons, AntDesign, Ionicons } from "@expo/vector-icons";
+import { MaterialIcons, AntDesign } from "@expo/vector-icons";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 const Inscription = () => {
@@ -142,12 +142,7 @@ const Inscription = () => {
               <AntDesign name="google" size={24} color="white" />
             </TouchableOpacity>
 
-            <TouchableOpacity
-              style={[styles.socialButton, { backgroundColor: "#1877F2" }]}
-              onPress={() => handleSocialSignup("Facebook")}
-            >
-              <Ionicons name="logo-facebook" size={24} color="white" />
-            </TouchableOpacity>
+  
 
             {Platform.OS === "ios" && (
               <TouchableOpacity
@@ -221,7 +216,8 @@ const styles = StyleSheet.create({
     borderColor: Colors.light,
     borderRadius: 12,
     paddingHorizontal: 15,
-    paddingVertical: 15,
+    paddingVertical: 10,
+
     marginBottom: 15,
     gap: 10,
   },
