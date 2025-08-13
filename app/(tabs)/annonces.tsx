@@ -4,6 +4,7 @@ import {
   ScrollView,
   TouchableOpacity,
   Text,
+  ActivityIndicator,
 } from "react-native";
 import Data_Appartements from "@/Data/data-appartements.json";
 
@@ -11,9 +12,30 @@ import { AnnonceItem } from "@/Components/AnnonceItem";
 import { useRouter } from "expo-router";
 import { Colors } from "@/Components/Colors";
 import { FontAwesome6 } from "@expo/vector-icons";
+import useAuth from "@/assets/hooks/useAuth";
 
 export default function Annonces() {
   const router = useRouter();
+
+  const { user, loading, isAuthenticated } = useAuth();
+ 
+
+  // Écran de chargement
+
+  if (loading) {
+    return (
+      <View style={styles.loadingContainer}>
+        <ActivityIndicator size="large" color={Colors.primary} />
+        <Text style={styles.loadingText}>Chargement...</Text>
+      </View>
+    );
+  }
+
+  // Si pas authentifié, ne rien afficher (redirection en cours)
+  if (!isAuthenticated || !user) {
+    return null;
+  }
+
   return (
     <View style={styles.container}>
       {/* Scrollable Section */}
@@ -102,5 +124,16 @@ const styles = StyleSheet.create({
     color: "white",
     fontWeight: "500",
     fontSize: 14,
+  },
+  loadingText: {
+    marginTop: 12,
+    fontSize: 16,
+    color: Colors.gray,
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "#F8F9FA",
   },
 });

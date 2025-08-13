@@ -24,6 +24,13 @@ export default function RootLayout() {
         options={{ title: "Inscription" }}
       />
       <Stack.Screen
+        name="inscription/verification-email"
+        options={{ title: "verification-email" }}
+      />
+      
+
+      
+      <Stack.Screen
         name="connexion/MotsPasseOublie"
         options={{ title: "Mot de passe oublié" }}
       />

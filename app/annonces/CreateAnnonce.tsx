@@ -8,6 +8,7 @@ import {
   ScrollView,
   Platform,
   KeyboardAvoidingView,
+  ActivityIndicator,
 } from "react-native";
 import Fontisto from "@expo/vector-icons/Fontisto";
 import { useRouter } from "expo-router";
@@ -20,11 +21,30 @@ import VirtualSpace_CreateAnnonce from "@/Components/Annonces/VirtualSpace_Creat
 import Preview_CreateAnnonce from "@/Components/Annonces/Preview_CreateAnnonce";
 import { useRef, useState } from "react";
 import Final_CreateAnnonce from "@/Components/Annonces/Final_CreateAnnonce";
+import useAuth from "@/assets/hooks/useAuth";
 
 const CreateAnnonce = () => {
   const [step, setStep] = useState<number>(1);
   const [modalVisible, setModalVisible] = useState(false);
   const scrollViewRef = useRef<ScrollView | null>(null);
+  const router = useRouter();
+  const { user, loading, isAuthenticated } = useAuth();
+
+  // Écran de chargement
+
+  if (loading) {
+    return (
+      <View style={styles.loadingContainer}>
+        <ActivityIndicator size="large" color={Colors.primary} />
+        <Text style={styles.loadingText}>Chargement...</Text>
+      </View>
+    );
+  }
+
+  // Si pas authentifié, ne rien afficher (redirection en cours)
+  if (!isAuthenticated || !user) {
+    return null;
+  }
 
   // Fonction pour faire défiler le ScrollView vers un élément spécifique
   const scrollToInput = (yPosition: number) => {
@@ -35,8 +55,6 @@ const CreateAnnonce = () => {
       });
     }
   };
-
-  const router = useRouter();
 
   const renderCurrentStep = () => {
     switch (step) {
@@ -238,5 +256,17 @@ const styles = StyleSheet.create({
     color: "white",
     fontSize: 16,
     fontWeight: "500",
+  },
+
+  loadingText: {
+    marginTop: 12,
+    fontSize: 16,
+    color: Colors.gray,
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "#F8F9FA",
   },
 });

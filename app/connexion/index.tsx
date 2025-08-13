@@ -15,8 +15,9 @@ import {
 import { Image } from "expo-image";
 import { Colors } from "@/Components/Colors";
 import { Link, useRouter } from "expo-router";
-import { MaterialIcons, AntDesign, Ionicons } from "@expo/vector-icons";
+import { MaterialIcons } from "@expo/vector-icons";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { supabase } from "@/utils/supabase";
 
 const Login = () => {
   const router = useRouter();
@@ -25,29 +26,79 @@ const Login = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
 
+  // Validation email
+  const validateEmail = (email: string): boolean => {
+    const emailRegex: RegExp = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return emailRegex.test(email);
+  };
+
   const handleEmailLogin = async () => {
+    // Validation des champs
     if (!email || !password) {
       Alert.alert("Erreur", "Veuillez remplir tous les champs");
       return;
     }
 
+    if (!validateEmail(email)) {
+      Alert.alert("Erreur", "Veuillez saisir une adresse email valide");
+      return;
+    }
+
+    if (password.length < 6) {
+      Alert.alert("Erreur", "Le mot de passe doit contenir au moins 6 caractères");
+      return;
+    }
+
     setIsLoading(true);
+
     try {
-      // Simulation de connexion
-      await new Promise((resolve) => setTimeout(resolve, 1500));
-      Alert.alert("Succès", "Connexion réussie !", [
-        { text: "OK", onPress: () => router.push("/") },
-      ]);
-    } catch (error) {
-      console.error(error);
-      Alert.alert("Erreur", "Email ou mot de passe incorrect");
+      // Connexion avec Supabase
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email: email.trim(),
+        password: password,
+      });
+
+      if (error) {
+        Alert.alert("Erreur", error.message);
+        return;
+      }
+
+      if (data.user) {
+        // Vérifier si l'email est confirmé
+        if (!data.user.email_confirmed_at) {
+          Alert.alert(
+            "Email non vérifié",
+            "Votre compte n'est pas encore vérifié. Vous allez être redirigé vers la page de vérification.",
+            [
+              {
+                text: "OK",
+                onPress: () => router.push({
+                  pathname: "/inscription/verification-email",
+                  params: { 
+                    email: data.user.email,
+                    fromLogin: "true"
+                  }
+                }),
+              },
+            ]
+          );
+          return;
+        }
+
+        // Si tout est OK, rediriger vers l'app
+        Alert.alert("Connexion réussie", "Bienvenue !", [
+          {
+            text: "OK",
+            onPress: () => router.push("/(tabs)"),
+          },
+        ]);
+      }
+    } catch (error: any) {
+      console.error("Erreur lors de la connexion:", error);
+      Alert.alert("Erreur", "Une erreur inattendue s'est produite");
     } finally {
       setIsLoading(false);
     }
-  };
-
-  const handleSocialLogin = async (provider: string) => {
-    Alert.alert("Info", `Connexion avec ${provider} en cours...`);
   };
 
   return (
@@ -72,8 +123,11 @@ const Login = () => {
           {/* Formulaire */}
           <View style={styles.form}>
             {/* Email Input */}
-            <View style={styles.inputContainer}>
-              <MaterialIcons name="email" size={20} color={Colors.primary} />
+            <View style={[
+              styles.inputContainer,
+              email && !validateEmail(email) && styles.inputError,
+            ]}>
+              <MaterialIcons name="email" size={18} color={Colors.primary} />
               <TextInput
                 style={styles.input}
                 placeholder="Adresse email"
@@ -83,11 +137,21 @@ const Login = () => {
                 autoCapitalize="none"
                 placeholderTextColor={Colors.gray}
               />
+              {email && validateEmail(email) && (
+                <MaterialIcons
+                  name="check-circle"
+                  size={18}
+                  color="#4CAF50"
+                />
+              )}
             </View>
 
             {/* Password Input */}
-            <View style={styles.inputContainer}>
-              <MaterialIcons name="lock" size={20} color={Colors.primary} />
+            <View style={[
+              styles.inputContainer,
+              password && password.length < 6 && styles.inputError,
+            ]}>
+              <MaterialIcons name="lock" size={18} color={Colors.primary} />
               <TextInput
                 style={styles.input}
                 placeholder="Mot de passe"
@@ -99,7 +163,7 @@ const Login = () => {
               <TouchableOpacity onPress={() => setShowPassword(!showPassword)}>
                 <MaterialIcons
                   name={showPassword ? "visibility-off" : "visibility"}
-                  size={20}
+                  size={18}
                   color={Colors.gray}
                 />
               </TouchableOpacity>
@@ -116,49 +180,22 @@ const Login = () => {
 
             {/* Bouton Connexion */}
             <Pressable
-              style={[styles.button, isLoading && styles.buttonDisabled]}
+              style={[
+                styles.button, 
+                (isLoading || !email || !password || !validateEmail(email) || password.length < 6) && styles.buttonDisabled
+              ]}
               onPress={handleEmailLogin}
-              disabled={isLoading}
+              disabled={isLoading || !email || !password || !validateEmail(email) || password.length < 6}
             >
               {isLoading ? (
-                <ActivityIndicator color="white" />
+                <View style={styles.loadingContainer}>
+                  <ActivityIndicator color="white" size="small" />
+                  <Text style={styles.buttonText}>Connexion...</Text>
+                </View>
               ) : (
                 <Text style={styles.buttonText}>Se connecter</Text>
               )}
             </Pressable>
-          </View>
-
-          {/* Diviseur */}
-          <View style={styles.divider}>
-            <View style={styles.line} />
-            <Text style={styles.dividerText}>ou connectez-vous avec</Text>
-            <View style={styles.line} />
-          </View>
-
-          {/* Boutons Sociaux */}
-          <View style={styles.socialContainer}>
-            <TouchableOpacity
-              style={[styles.socialButton, { backgroundColor: "#DB4437" }]}
-              onPress={() => handleSocialLogin("Google")}
-            >
-              <AntDesign name="google" size={24} color="white" />
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              style={[styles.socialButton, { backgroundColor: "#1877F2" }]}
-              onPress={() => handleSocialLogin("Facebook")}
-            >
-              <Ionicons name="logo-facebook" size={24} color="white" />
-            </TouchableOpacity>
-
-            {Platform.OS === "ios" && (
-              <TouchableOpacity
-                style={[styles.socialButton, { backgroundColor: "#000" }]}
-                onPress={() => handleSocialLogin("Apple")}
-              >
-                <AntDesign name="apple1" size={24} color="white" />
-              </TouchableOpacity>
-            )}
           </View>
 
           {/* Lien Inscription */}
@@ -181,7 +218,7 @@ export default Login;
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "white",
+    backgroundColor: "#F8F9FA",
   },
 
   keyboardView: {
@@ -191,6 +228,7 @@ const styles = StyleSheet.create({
   header: {
     alignItems: "center",
     marginBottom: 30,
+    backgroundColor: "white",
   },
 
   image: {
@@ -210,37 +248,47 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: Colors.gray,
     textAlign: "center",
+    paddingBottom: 20,
   },
 
   form: {
+    backgroundColor: "white",
+    marginHorizontal: 20,
+    borderRadius: 16,
+    paddingVertical: 24,
     paddingHorizontal: 20,
-    marginBottom: 20,
+    marginBottom: 30,
+    shadowColor: "#000",
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.08,
+    shadowRadius: 8,
+    elevation: 4,
   },
 
   inputContainer: {
     flexDirection: "row",
     alignItems: "center",
-    borderWidth: 1.5,
-    borderColor: Colors.light,
+    borderWidth: 1,
+    borderColor: "#E5E7EB",
     borderRadius: 12,
-    paddingHorizontal: 15,
-    paddingVertical: 15,
-    marginBottom: 15,
-    gap: 12,
-    backgroundColor: "white",
-    shadowColor: "#000",
-    shadowOffset: {
-      width: 0,
-      height: 1,
-    },
-    shadowOpacity: 0.05,
-    shadowRadius: 2,
-    elevation: 1,
+    paddingHorizontal: 12,
+    paddingVertical: 12,
+    marginBottom: 16,
+    gap: 10,
+    backgroundColor: "#FAFBFC",
+  },
+
+  inputError: {
+    borderColor: "#EF4444",
+    backgroundColor: "#FEF2F2",
   },
 
   input: {
     flex: 1,
-    fontSize: 16,
+    fontSize: 15,
     color: Colors.dark,
   },
 
@@ -250,93 +298,59 @@ const styles = StyleSheet.create({
   },
 
   forgotText: {
-    fontSize: 14,
+    fontSize: 13,
     color: Colors.primary,
-    fontWeight: "600",
+    fontWeight: "500",
   },
 
   button: {
     backgroundColor: Colors.primary,
-    paddingVertical: 16,
+    paddingVertical: 14,
     borderRadius: 12,
     alignItems: "center",
     shadowColor: Colors.primary,
     shadowOffset: {
       width: 0,
-      height: 4,
+      height: 3,
     },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
     elevation: 6,
   },
 
   buttonDisabled: {
-    opacity: 0.7,
+    opacity: 0.6,
+    shadowOpacity: 0.1,
+  },
+
+  loadingContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
   },
 
   buttonText: {
     color: "white",
-    fontSize: 18,
-    fontWeight: "bold",
-  },
-
-  divider: {
-    flexDirection: "row",
-    alignItems: "center",
-    paddingHorizontal: 20,
-    marginVertical: 25,
-  },
-
-  line: {
-    flex: 1,
-    height: 1,
-    backgroundColor: Colors.light,
-  },
-
-  dividerText: {
-    marginHorizontal: 15,
-    fontSize: 14,
-    color: Colors.gray,
-  },
-
-  socialContainer: {
-    flexDirection: "row",
-    justifyContent: "center",
-    gap: 15,
-    paddingHorizontal: 20,
-    marginBottom: 30,
-  },
-
-  socialButton: {
-    width: 56,
-    height: 56,
-    borderRadius: 28,
-    justifyContent: "center",
-    alignItems: "center",
-    shadowColor: "#000",
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
+    fontSize: 15,
+    fontWeight: "600",
   },
 
   signupLink: {
     flexDirection: "row",
     justifyContent: "center",
+    alignItems: "center",
     gap: 6,
+    paddingHorizontal: 20,
     paddingBottom: 20,
   },
 
   signupText: {
-    fontSize: 16,
+    fontSize: 14,
     color: Colors.gray,
   },
 
   link: {
-    fontSize: 16,
+    fontSize: 14,
     color: Colors.primary,
     fontWeight: "600",
   },
