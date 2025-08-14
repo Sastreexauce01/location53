@@ -20,7 +20,7 @@ const Final_CreateAnnonce = ({ modalVisible, setModalVisible }: props) => {
       <Pressable
         onPress={() => {
           setModalVisible(!modalVisible);
-          router.push("/(tabs)/annonces");
+          // router.push("/(tabs)/annonces");
         }}
         style={{ flex: 1 }}
       >

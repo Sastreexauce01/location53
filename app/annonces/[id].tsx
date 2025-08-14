@@ -1,24 +1,35 @@
-import { View, Text, StyleSheet, Pressable } from "react-native";
+import { View, Text, StyleSheet, Pressable, ActivityIndicator } from "react-native";
 import { useLocalSearchParams, useRouter } from "expo-router";
-import Data_Appartements from "@/Data/data-appartements.json";
 import { AnnonceType } from "@/assets/Types/type";
 import Detail_Annonce from "@/Components/Detail_Annonce";
 import { Fontisto } from "@expo/vector-icons";
 import { Colors } from "@/Components/Colors";
+import useAnnonce_Data from "@/assets/hooks/useAnnonce_Data";
 
 export default function Page_Detail() {
   const { id } = useLocalSearchParams();
   const router = useRouter();
+  const { listAppartments, isLoadingAnnonces } = useAnnonce_Data();
 
-  const Annonce_query: AnnonceType | undefined = Data_Appartements.find(
+  const Annonce_query: AnnonceType | undefined = listAppartments.find(
     (annonce) => annonce.id === id
   );
 
-  // console.log(Annonce_query); // Vérifiez la structure de l'objet récupéré
+  // Écran de chargement pour les annonces
+  if (isLoadingAnnonces) {
+    return (
+      <View style={styles.loadingContainer}>
+        <ActivityIndicator size="large" color={Colors.primary} />
+        <Text style={styles.loadingText}>Chargement ...</Text>
+      </View>
+    );
+  }
+
+   console.log(Annonce_query);  // Vérifiez la structure de l'objet récupéré
   if (!Annonce_query) {
     return (
       <View style={styles.container}>
-        <Text>Annonce introuvable</Text>
+        <Text>Annonce introuvables</Text>
       </View>
     );
   }
@@ -51,5 +62,18 @@ const styles = StyleSheet.create({
     borderRadius: "100%",
     alignItems: "center",
     zIndex: 10,
+  },
+
+    loadingText: {
+    marginTop: 12,
+    fontSize: 16,
+    color: Colors.gray,
+  },
+
+  loadingContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "#F8F9FA",
   },
 });

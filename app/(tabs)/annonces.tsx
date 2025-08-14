@@ -6,7 +6,6 @@ import {
   Text,
   ActivityIndicator,
 } from "react-native";
-import Data_Appartements from "@/Data/data-appartements.json";
 
 import { AnnonceItem } from "@/Components/AnnonceItem";
 import { useRouter } from "expo-router";
@@ -14,14 +13,14 @@ import { Colors } from "@/Components/Colors";
 import { FontAwesome6 } from "@expo/vector-icons";
 import useAuth from "@/assets/hooks/useAuth";
 
+import useAnnonce_Data from "@/assets/hooks/useAnnonce_Data";
+
 export default function Annonces() {
   const router = useRouter();
-
   const { user, loading, isAuthenticated } = useAuth();
- 
+  const { listAppartments, isLoadingAnnonces } = useAnnonce_Data();
 
-  // Écran de chargement
-
+  // Écran de chargement pour l'authentification
   if (loading) {
     return (
       <View style={styles.loadingContainer}>
@@ -31,9 +30,19 @@ export default function Annonces() {
     );
   }
 
-  // Si pas authentifié, ne rien afficher (redirection en cours)
+  // Si pas authentifié, ne rien afficher
   if (!isAuthenticated || !user) {
     return null;
+  }
+
+  // Écran de chargement pour les annonces
+  if (isLoadingAnnonces) {
+    return (
+      <View style={styles.loadingContainer}>
+        <ActivityIndicator size="large" color={Colors.primary} />
+        <Text style={styles.loadingText}>Chargement des annonces...</Text>
+      </View>
+    );
   }
 
   return (
@@ -44,26 +53,36 @@ export default function Annonces() {
         showsVerticalScrollIndicator={false}
       >
         <View style={styles.container_annonce}>
-          {Data_Appartements.map((item) => (
-            <TouchableOpacity
-              key={item.id}
-              style={styles.annonce}
-              onPress={() => router.push(`/annonces/${item.id}`)}
-            >
-              <AnnonceItem item={item} />
-            </TouchableOpacity>
-          ))}
+          {/* ✅ CORRECTION MAJEURE: utiliser listAppartments au lieu de Data_Appartements */}
+          {listAppartments.length === 0 ? (
+            <View style={styles.noAnnonceContainer}>
+              <FontAwesome6 name="house" size={50} color={Colors.gray} />
+              <Text style={styles.noAnnonceText}>Aucune annonce trouvée</Text>
+              <Text style={styles.noAnnonceSubText}>
+                Créez votre première annonce pour commencer
+              </Text>
+            </View>
+          ) : (
+            listAppartments.map((item) => (
+              <TouchableOpacity
+                key={item.id}
+                style={styles.annonce}
+                onPress={() => router.push(`/annonces/${item.id}`)}
+              >
+                <AnnonceItem item={item} />
+              </TouchableOpacity>
+            ))
+          )}
         </View>
       </ScrollView>
 
-      {/*  Button */}
-
+      {/* Button */}
       <TouchableOpacity
         style={styles.button}
         onPress={() => router.push("/annonces/CreateAnnonce")}
       >
         <FontAwesome6 name="add" size={25} color="white" />
-        <Text style={styles.text}>Creer une annonce</Text>
+        <Text style={styles.text}>Créer une annonce</Text>
       </TouchableOpacity>
     </View>
   );
@@ -78,13 +97,12 @@ const styles = StyleSheet.create({
   scrollContainer: {
     paddingHorizontal: 10,
     paddingTop: 20,
-    paddingBottom: 100, // Pour éviter que les annonces ne soient cachées par le bouton
+    paddingBottom: 100,
   },
 
   container_annonce: {
     flexDirection: "row",
     flexWrap: "wrap",
-    //backgroundColor: "orange",
     gap: 20,
     justifyContent: "space-between",
   },
@@ -92,7 +110,31 @@ const styles = StyleSheet.create({
   annonce: {
     height: 185,
     width: "45%",
-    // overflow: "hidden",
+  },
+
+  // ✅ Styles pour l'état vide
+  noAnnonceContainer: {
+    flex: 1,
+    alignItems: "center",
+    justifyContent: "center",
+    paddingVertical: 60,
+    width: "100%",
+  },
+
+  noAnnonceText: {
+    fontSize: 18,
+    fontWeight: "600",
+    color: Colors.dark,
+    marginTop: 20,
+    textAlign: "center",
+  },
+
+  noAnnonceSubText: {
+    fontSize: 14,
+    color: Colors.gray,
+    marginTop: 8,
+    textAlign: "center",
+    paddingHorizontal: 20,
   },
 
   button: {
@@ -125,11 +167,13 @@ const styles = StyleSheet.create({
     fontWeight: "500",
     fontSize: 14,
   },
+
   loadingText: {
     marginTop: 12,
     fontSize: 16,
     color: Colors.gray,
   },
+
   loadingContainer: {
     flex: 1,
     justifyContent: "center",

@@ -26,17 +26,45 @@ export interface Image360 {
 }
 
 
+
+
+
+
+// ✅ Type temporaire pour les données brutes de Supabase
+ export interface SupabaseAnnonce {
+  id: string;
+  nom_annonce: string;
+  type_annonce: string;
+  categorie: string;
+  description: string;
+  images: string[];
+  adresse: string;
+  latitude: number;
+  longitude: number;
+  prix: number;
+  nbre_chambre: number;
+  nbre_salle_bains: number;
+  accessibilite: string[];
+  created_at: string;
+  updated_at: string;
+  id_agent: string;
+}
+
+
+
+
 export interface Hotspot {
   id: string;
   yaw: number; // horizontal [-π à π]
   pitch: number; // vertical [-π/2 à π/2]
-  type: "scene"|string;
+  type: "scene" | string;
   title: string;
   targetSceneId: string; // Pour type 'scene'
 }
 
 
-// Api pour la generattion d'image 360 
+
+// Api pour la generattion d'image 360
 
 export type Rotation_Type = {
   alpha: number; // orientation horizontale

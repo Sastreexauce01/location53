@@ -1,6 +1,7 @@
 import { atom } from "jotai";
 import { AnnonceType } from "@/assets/Types/type";
 
+
 export const annonce_Atom = atom<AnnonceType>({
   id: "1",
   nomAnnonce: "",
