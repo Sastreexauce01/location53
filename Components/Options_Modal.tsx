@@ -1,168 +1,217 @@
-
 import {
   Text,
   View,
   StyleSheet,
   Modal,
   TouchableOpacity,
+  Animated,
+  Dimensions,
 } from "react-native";
 import { Colors } from "./Colors";
+import { useEffect, useRef } from "react";
 
-type props={
-    modalVisible:boolean;
-     setModalVisible:any;
-}
-const Options_Modal = ({modalVisible, setModalVisible}:props) => {
-    
+type props = {
+  modalVisible: boolean;
+  setModalVisible: (visible: boolean) => void;
+  onModifier?: () => void;
+  onSupprimer?: () => void;
+};
+
+const { height: screenHeight } = Dimensions.get("window");
+
+const Options_Modal = ({
+  modalVisible,
+  setModalVisible,
+  onModifier,
+  onSupprimer,
+}: props) => {
+  const slideAnim = useRef(new Animated.Value(screenHeight)).current;
+
+  useEffect(() => {
+    if (modalVisible) {
+      // Animation d'entrée - slide du bas vers le haut
+      Animated.spring(slideAnim, {
+        toValue: 0,
+        useNativeDriver: true,
+        tension: 100,
+        friction: 8,
+      }).start();
+    } else {
+      // Animation de sortie - slide vers le bas
+      Animated.timing(slideAnim, {
+        toValue: screenHeight,
+        duration: 300,
+        useNativeDriver: true,
+      }).start();
+    }
+  }, [modalVisible, slideAnim]);
+
+  const closeModal = () => {
+    setModalVisible(false);
+  };
+
+  const handleModifier = () => {
+    closeModal();
+    onModifier && onModifier();
+  };
+
+  const handleSupprimer = () => {
+    closeModal();
+    onSupprimer && onSupprimer();
+  };
+
   return (
-     <Modal
-              animationType="slide"
-              transparent={true}
-              visible={modalVisible}
-              onRequestClose={() => setModalVisible(false)}
-            >
-              <TouchableOpacity
-                style={styles.modalOverlay}
-                activeOpacity={1}
-                onPress={() => setModalVisible(false)}
-              >
-                <View style={styles.modalView}>
-                  <TouchableOpacity
-                    style={styles.modalButton}
-                    onPress={() => alert("Voir détails")}
-                  >
-                    <Text style={styles.modalText}>Voir détails</Text>
-                  </TouchableOpacity>
-                  <TouchableOpacity
-                    style={styles.modalButton}
-                    onPress={() => alert("Modifier")}
-                  >
-                    <Text style={styles.modalText}>Modifier</Text>
-                  </TouchableOpacity>
-    
-                  <TouchableOpacity
-                    style={[styles.modalButton, styles.deleteButton]}
-                    onPress={() => alert("Supprimer")}
-                  >
-                    <Text style={[styles.modalText, { color: "red" }]}>
-                      Supprimer
-                    </Text>
-                  </TouchableOpacity>
-                  <TouchableOpacity onPress={() => setModalVisible(false)}>
-                    <Text style={styles.closeText}>Annuler</Text>
-                  </TouchableOpacity>
-                </View>
-              </TouchableOpacity>
-            </Modal>
-  )
-}
+    <Modal
+      animationType='slide'
+      transparent={true}
+      visible={modalVisible}
+      onRequestClose={closeModal}
+    >
+      <View style={styles.modalOverlay}>
+        <TouchableOpacity
+          style={styles.overlayTouchable}
+          activeOpacity={1}
+          onPress={closeModal}
+        />
 
-export default Options_Modal
+        <Animated.View
+          style={[
+            styles.modalContainer,
+            {
+              transform: [{ translateY: slideAnim }],
+            },
+          ]}
+        >
+          <View style={styles.modalHeader}>
+            <View style={styles.dragIndicator} />
+            <Text style={styles.modalTitle}>Options</Text>
+          </View>
+
+          <View style={styles.modalContent}>
+
+            <TouchableOpacity
+              style={styles.actionButton}
+              onPress={handleModifier}
+              activeOpacity={0.7}
+            >
+              <Text style={styles.actionText}>Modifier</Text>
+            </TouchableOpacity>
+
+            
+
+            <TouchableOpacity
+              style={styles.actionButton}
+              onPress={handleSupprimer}
+              activeOpacity={0.7}
+            >
+              <Text style={[styles.actionText, styles.deleteText]}>
+                Supprimer
+              </Text>
+            </TouchableOpacity>
+          </View>
+
+          <TouchableOpacity
+            style={styles.cancelButton}
+            onPress={closeModal}
+            activeOpacity={0.7}
+          >
+            <Text style={styles.cancelText}>Annuler</Text>
+          </TouchableOpacity>
+        </Animated.View>
+      </View>
+    </Modal>
+  );
+};
+
+export default Options_Modal;
 
 const styles = StyleSheet.create({
-  container: {
-    borderRadius: 10,
-    overflow: "hidden",
-    backgroundColor: "#E0DEF7",
-    height: 200,
-    width: "45%",
-    justifyContent: "space-between",
-  },
-
-  imageContainer: {
-    position: "relative",
-    height: 150,
-    width: "100%",
-    justifyContent: "center",
-    alignItems: "center",
-    backgroundColor: "#ccc",
-  },
-
-  loader: {
-    position: "absolute",
-    zIndex: 1,
-  },
-
-  image: {
-    height: 150,
-    width: "100%",
-    justifyContent: "flex-start",
-  },
-
-  overlay: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    paddingTop: 5,
-    paddingHorizontal: 2,
-  },
-
-  tag: {
-    backgroundColor: Colors.light,
-    padding: 4,
-    borderRadius: 5,
-  },
-
-  container_information: {
-    padding: 2,
-    flexDirection: "column",
-    gap: 10,
-  },
-
-  container_date: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 2,
-  },
-
-  title: {
-    color: Colors.dark,
-    fontSize: 20,
-    fontWeight: "600",
-  },
-
-  date: {
-    fontSize: 10,
-    color: "black",
-    opacity: 0.5,
-  },
-
-  /* Styles du modal */
   modalOverlay: {
     flex: 1,
-    backgroundColor: "rgba(0,0,0,0.5)",
-    justifyContent: "center",
-    alignItems: "center",
+    backgroundColor: "rgba(0, 0, 0, 0.4)",
+    justifyContent: "flex-end",
   },
 
-  modalView: {
-    width: 250,
+  overlayTouchable: {
+    flex: 1,
+  },
+
+  modalContainer: {
     backgroundColor: "white",
-    borderRadius: 10,
-    padding: 20,
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+    paddingBottom: 20,
+    maxHeight: screenHeight * 0.6,
+    shadowColor: "#000",
+    shadowOffset: {
+      width: 0,
+      height: -2,
+    },
+    shadowOpacity: 0.25,
+    shadowRadius: 10,
+    elevation: 10,
+  },
+
+  modalHeader: {
     alignItems: "center",
+    paddingTop: 15,
+    paddingBottom: 10,
+    borderBottomWidth: 1,
+    borderBottomColor: "#f0f0f0",
   },
 
-  modalButton: {
-    width: "100%",
-    padding: 10,
-    alignItems: "center",
+  dragIndicator: {
+    width: 40,
+    height: 4,
+    backgroundColor: "#ddd",
+    borderRadius: 2,
+    marginBottom: 15,
   },
 
-  deleteButton: {
-    borderTopWidth: 1,
-    borderTopColor: "#ddd",
-    marginTop: 10,
-  },
-
-  modalText: {
-    fontSize: 16,
+  modalTitle: {
+    fontSize: 18,
+    fontWeight: "600",
     color: Colors.dark,
   },
 
-  closeText: {
+  modalContent: {
+    paddingHorizontal: 20,
+    paddingTop: 10,
+  },
+
+  actionButton: {
+    paddingVertical: 18,
+    alignItems: "center",
+  },
+
+  actionText: {
+    fontSize: 16,
+    color: Colors.dark,
+    fontWeight: "500",
+  },
+
+  deleteText: {
+    color: "#ff4757",
+  },
+
+  separator: {
+    height: 1,
+    backgroundColor: "#f0f0f0",
+    marginHorizontal: -20,
+  },
+
+  cancelButton: {
     marginTop: 10,
+    marginHorizontal: 20,
+    paddingVertical: 15,
+    backgroundColor: "#f8f9fa",
+    borderRadius: 12,
+    alignItems: "center",
+  },
+
+  cancelText: {
     fontSize: 16,
     color: Colors.primary,
+    fontWeight: "500",
   },
 });

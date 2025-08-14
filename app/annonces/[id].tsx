@@ -1,4 +1,10 @@
-import { View, Text, StyleSheet, Pressable, ActivityIndicator } from "react-native";
+import {
+  View,
+  Text,
+  StyleSheet,
+  Pressable,
+  ActivityIndicator,
+} from "react-native";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { AnnonceType } from "@/assets/Types/type";
 import Detail_Annonce from "@/Components/Detail_Annonce";
@@ -25,7 +31,8 @@ export default function Page_Detail() {
     );
   }
 
-   console.log(Annonce_query);  // Vérifiez la structure de l'objet récupéré
+  // console.log(Annonce_query);  // Vérifiez la structure de l'objet récupéré
+  
   if (!Annonce_query) {
     return (
       <View style={styles.container}>
@@ -64,7 +71,7 @@ const styles = StyleSheet.create({
     zIndex: 10,
   },
 
-    loadingText: {
+  loadingText: {
     marginTop: 12,
     fontSize: 16,
     color: Colors.gray,

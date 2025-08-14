@@ -12,15 +12,18 @@ import { SimpleLineIcons } from "@expo/vector-icons";
 import Options_Modal from "./Options_Modal";
 import Loading from "@/assets/ui/Loading";
 import { AnnonceType } from "@/assets/Types/type";
+import useAnnonce_Data from "@/assets/hooks/useAnnonce_Data";
+import { useRouter } from "expo-router";
 
 type Props = {
-  item:AnnonceType
+  item: AnnonceType;
 };
 
 export const AnnonceItem = ({ item }: Props) => {
   const [isLoading, setIsLoading] = useState(true); // État de chargement
   const [modalVisible, setModalVisible] = useState(false); // État du modal
-
+  const { handleUpdate, handleDelete } = useAnnonce_Data();
+  
   const date_creation = new Date(item.date_creation).toLocaleDateString(
     "fr-FR",
     {
@@ -31,6 +34,8 @@ export const AnnonceItem = ({ item }: Props) => {
       minute: "2-digit",
     }
   );
+
+  const router = useRouter();
   return (
     <View style={styles.container}>
       {/* Image avec indicateur de chargement */}
@@ -64,6 +69,17 @@ export const AnnonceItem = ({ item }: Props) => {
       <Options_Modal
         modalVisible={modalVisible}
         setModalVisible={setModalVisible}
+        onModifier={() => {
+          // Logique de modification
+          console.log("Modifier action");
+          handleUpdate(item.id);
+          router.push("/annonces/CreateAnnonce");
+        }}
+        onSupprimer={() => {
+          // Logique de suppression
+          console.log("Supprimer action");
+          handleDelete(item.id);
+        }}
       />
     </View>
   );
@@ -87,7 +103,7 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
     backgroundColor: "#ccc",
-    overflow:'hidden'
+    overflow: "hidden",
   },
 
   loader: {
@@ -122,12 +138,10 @@ const styles = StyleSheet.create({
   },
 
   container_information: {
-    gap:5,
+    gap: 5,
     padding: 2,
     flexDirection: "column",
     justifyContent: "space-between",
-
-   
   },
 
   title: {
@@ -139,7 +153,7 @@ const styles = StyleSheet.create({
 
   date: {
     fontSize: 10,
-    color: 'back',
+    color: "back",
     opacity: 0.5,
   },
 
@@ -164,7 +178,6 @@ const styles = StyleSheet.create({
     padding: 10,
     alignItems: "center",
   },
-
 
   modalText: {
     fontSize: 16,

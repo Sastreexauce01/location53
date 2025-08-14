@@ -2,9 +2,11 @@ import { useEffect, useState } from "react";
 import { AnnonceType, Image360, SupabaseAnnonce } from "../Types/type";
 import useAuth from "./useAuth";
 import { supabase } from "@/utils/supabase";
+import { useAnnonce } from "./useAnnonce";
 
 const useAnnonce_Data = () => {
   const [listAppartments, setListAppartments] = useState<AnnonceType[]>([]);
+  const { saveAnnonce } = useAnnonce();
   const [isLoadingAnnonces, setIsLoadingAnnonces] = useState(false);
   const { user, isAuthenticated } = useAuth();
 
@@ -52,7 +54,6 @@ const useAnnonce_Data = () => {
           `❌ Erreur de récupération de données: ${error.message}`
         );
       } else {
-        
         // console.log("✅ Annonces récupérées:", data);
 
         // ✅ Option 2: Si vous voulez charger les virtualSpaces (commenté pour l'instant)
@@ -101,7 +102,56 @@ const useAnnonce_Data = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isAuthenticated, user?.id]);
 
+  // modifier
+
+  const handleUpdate = (idAnnonce: string) => {
+    const annonceQuery: AnnonceType | undefined = listAppartments.find(
+      (annonce) => annonce.id === idAnnonce
+    );
+
+    if (annonceQuery) {
+      saveAnnonce(annonceQuery);
+    }
+  };
+
+  //  delete
+
+  const handleDelete = async (idAnnonce: string) => {
+    try {
+      // Supprimer l'annonce avec l'ID spécifié
+      const { data, error } = await supabase
+        .from("annonces")
+        .delete()
+        .eq("id", idAnnonce);
+
+      if (error) {
+        console.error("Erreur lors de la suppression:", error);
+        // Vous pouvez afficher une alerte ou toast d'erreur
+        alert("Erreur lors de la suppression de l'annonce");
+        return false;
+      }
+
+      console.log("Annonce supprimée avec succès:", data);
+      // Vous pouvez afficher un message de succès
+      alert("Annonce supprimée avec succès!");
+
+      // Optionnel : rafraîchir la liste des annonces
+      await fetchData(); // si vous avez une fonction pour recharger les données
+
+      return true;
+      
+    } catch (err) {
+      console.error("Erreur inattendue:", err);
+      alert("Une erreur inattendue s'est produite");
+      return false;
+    }
+  };
+
+  // ////////////////////////////////////////////
   return {
+    handleUpdate,
+    handleDelete,
+
     listAppartments,
     setListAppartments,
     isLoadingAnnonces,

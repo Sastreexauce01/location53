@@ -15,12 +15,15 @@ import { AnnonceType } from "@/assets/Types/type";
 import Image_Carousel from "./Image_Carousel";
 import { AntDesign, MaterialCommunityIcons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
+import useAuth from "@/assets/hooks/useAuth";
 
 type props = {
   item: AnnonceType;
 };
 
 const Detail_Annonce: React.FC<props> = ({ item }) => {
+  const { user } = useAuth();
+
   const router = useRouter();
   return (
     <View style={styles.container}>
@@ -79,7 +82,7 @@ const Detail_Annonce: React.FC<props> = ({ item }) => {
           style={styles.button}
           onPress={() =>
             Linking.openURL(
-              "https://wa.me/22990291067?text=Bonjour, je suis intéressé(e) par l'annonce."
+              `https://wa.me/${user?.phone}?text=Bonjour, je suis intéressé(e) par votre annonce concernant le bien ${item.nomAnnonce} .`
             )
           }
         >
@@ -203,7 +206,7 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     gap: 5,
     backgroundColor: Colors.primary,
-    padding:8,
+    padding: 8,
     borderRadius: 8,
   },
   buttonText: {

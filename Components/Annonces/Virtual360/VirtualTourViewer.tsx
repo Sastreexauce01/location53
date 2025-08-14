@@ -12,12 +12,13 @@ import Ionicons from "@expo/vector-icons/Ionicons";
 import { useRouter } from "expo-router";
 import { AnnonceType } from "@/assets/Types/type";
 
-
 interface VirtualTourViewerProps {
   annonce: AnnonceType;
 }
 
-export const VirtualTourViewer: React.FC<VirtualTourViewerProps> = ({ annonce }) => {
+export const VirtualTourViewer: React.FC<VirtualTourViewerProps> = ({
+  annonce,
+}) => {
   const router = useRouter();
 
   const handleClose = () => {
@@ -58,7 +59,7 @@ export const VirtualTourViewer: React.FC<VirtualTourViewerProps> = ({ annonce })
     ...annonce,
     // On peut ajouter des métadonnées utiles
     totalScenes: annonce.virtualSpace.length,
-    timestamp: Date.now()
+    timestamp: Date.now(),
   };
 
   const galleryUrl = `https://panorama-gallery.netlify.app?data=${encodeURIComponent(
@@ -67,8 +68,8 @@ export const VirtualTourViewer: React.FC<VirtualTourViewerProps> = ({ annonce })
 
   return (
     <SafeAreaView style={styles.container}>
-              <StatusBar barStyle="dark-content" backgroundColor="#E0DEF7" />
-      
+      <StatusBar barStyle="dark-content" backgroundColor="#E0DEF7" />
+
       {/* Header élégant */}
       <View style={styles.header}>
         <View style={styles.headerLeft}>
@@ -80,7 +81,8 @@ export const VirtualTourViewer: React.FC<VirtualTourViewerProps> = ({ annonce })
               {annonce.nomAnnonce}
             </Text>
             <Text style={styles.subtitle}>
-              Visite virtuelle • {annonce.virtualSpace.length} scène{annonce.virtualSpace.length > 1 ? 's' : ''}
+              Visite virtuelle • {annonce.virtualSpace.length} scène
+              {annonce.virtualSpace.length > 1 ? "s" : ""}
             </Text>
           </View>
         </View>
@@ -113,7 +115,7 @@ export const VirtualTourViewer: React.FC<VirtualTourViewerProps> = ({ annonce })
           )}
           onError={(syntheticEvent) => {
             const { nativeEvent } = syntheticEvent;
-            console.log('WebView error:', nativeEvent);
+            console.log("WebView error:", nativeEvent);
           }}
         />
       </View>
