@@ -16,6 +16,8 @@ import OptionsModal from "./OptionsModal";
 import ImagesGrid from "./ImagesGrid";
 import EditModal from "./EditModal";
 import Panorama_captures from "./Panorama_captures";
+import Loading from "@/Components/Loading";
+import { Image360 } from "@/assets/Types/type";
 
 type NumerisationProps = {
   visible: boolean;
@@ -24,7 +26,10 @@ type NumerisationProps = {
 
 const Numerisation = ({ visible, setVisible }: NumerisationProps) => {
   const {
-  
+
+    //chargement
+    isLoading,
+
     // États
     cameraVisible,
     setCameraVisible,
@@ -64,13 +69,17 @@ const Numerisation = ({ visible, setVisible }: NumerisationProps) => {
   //   openEditModal(selectedImageIndex);
   // };
 
-  const handleSaveEdit = (title: string, description: string) => {
-    updateImageMetadata(editingImageIndex, title, description);
+
+  const handleSaveEdit = (image360 :Image360) => {
+    updateImageMetadata(image360);
   };
 
   const handleDeleteImage = () => {
     removeImage(editingImageIndex);
   };
+
+
+  if (isLoading) return <Loading/>
 
   return (
     <Modal visible={!visible} animationType="slide" style={styles.container}>
@@ -122,9 +131,10 @@ const Numerisation = ({ visible, setVisible }: NumerisationProps) => {
         </Pressable>
       </View>
 
-      {/* Modals */}
+      {/* modal pour choisir  gallery ou camera  */}
       <OptionsModal
         visible={optionsModalVisible}
+        isLoading={isLoading}
         onClose={closeOptionsModal}
         onCameraPress={openCamera}
         onGalleryPress={() => {
@@ -133,8 +143,11 @@ const Numerisation = ({ visible, setVisible }: NumerisationProps) => {
         }}
       />
 
+      {/*  modal em mode edition */}
       <EditModal
         visible={editModalVisible}
+        images={selectedImages}
+        index={editingImageIndex}
         imageData={selectedImages[editingImageIndex] || null}
         onClose={closeEditModal}
         onSave={handleSaveEdit}

@@ -3,6 +3,9 @@ import { Alert } from "react-native";
 import * as ImagePicker from "expo-image-picker";
 import { Image360 } from "../Types/type";
 import { useAnnonce } from "./useAnnonce";
+import { supabase } from "@/utils/supabase";
+import * as FileSystem from "expo-file-system";
+import { Buffer } from "buffer";
 
 export const useNumerisationState = () => {
   const { annonce, saveAnnonce } = useAnnonce();
@@ -17,26 +20,30 @@ export const useNumerisationState = () => {
   const [selectedImages, setSelectedImages] = useState<Image360[]>(
     annonce.virtualSpace || []
   );
+
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);
   const [editingImageIndex, setEditingImageIndex] = useState(0);
+
   const [isLoading, setIsLoading] = useState(false);
 
   // Génération d'ID unique pour chaque image
-  const generateId = () => Date.now().toString() + Math.random().toString(36).substr(2, 9);
+  const generateId = () =>
+    Date.now().toString() + Math.random().toString(36).substr(2, 9);
 
   // Fonction utilitaire pour synchroniser les images avec l'annonce
   const syncWithAnnonce = (newImages: Image360[]) => {
     setSelectedImages(newImages);
     saveAnnonce({
       ...annonce,
-      virtualSpace: newImages
+      virtualSpace: newImages,
     });
   };
 
   // Utilitaires
   const requestPermission = async () => {
     try {
-      const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+      const { status } =
+        await ImagePicker.requestMediaLibraryPermissionsAsync();
       if (status !== "granted") {
         Alert.alert(
           "Permission requise",
@@ -52,15 +59,68 @@ export const useNumerisationState = () => {
     }
   };
 
+  const uploadImage = async (imgUri: string): Promise<string> => {
+    try {
+      if (!imgUri) return "";
+
+      // Extraire l'extension et créer un nom unique
+      const fileExt = imgUri.split(".").pop()?.toLowerCase() || "jpg";
+      const fileName = `${Date.now()}-${Math.random()
+        .toString(36)
+        .substr(2, 9)}.${fileExt}`;
+
+      // Lire le fichier local en base64
+      const base64 = await FileSystem.readAsStringAsync(imgUri, {
+        encoding: FileSystem.EncodingType.Base64,
+      });
+
+      // Convertir Base64 en Uint8Array
+      const uint8Array = new Uint8Array(Buffer.from(base64, "base64"));
+
+      // Upload vers Supabase Storage
+      const { data, error } = await supabase.storage
+        .from("publics")
+        .upload(fileName, uint8Array, {
+          contentType: `image/${fileExt}`,
+          upsert: false,
+        });
+
+      if (error) {
+        console.error("❌ Erreur Supabase:", error);
+        throw new Error(error.message);
+      }
+
+      if (!data) {
+        throw new Error("Pas de données retournées");
+      }
+
+      // Obtenir l'URL publique
+      const { data: publicData } = supabase.storage
+        .from("publics")
+        .getPublicUrl(data.path);
+
+      console.log(`✅ Image uploadée: ${publicData.publicUrl}`);
+
+      return publicData.publicUrl;
+    } catch (err) {
+      console.error("❌ Erreur upload :", err);
+      return ""; // Retourner null en cas d'erreur
+    }
+  };
+
   // Actions pour les images
   const addImagesFromGallery = async () => {
     const hasPermission = await requestPermission();
     if (!hasPermission) return false;
 
     setIsLoading(true);
+
     try {
+      // clearAllImages();
+      // resetToAnnonceData();
+
       const result = await ImagePicker.launchImageLibraryAsync({
-        mediaTypes: ImagePicker.MediaTypeOptions.Images,
+        mediaTypes: ["images"],
         allowsMultipleSelection: true,
         quality: 0.8,
         aspect: [2, 1],
@@ -68,22 +128,32 @@ export const useNumerisationState = () => {
       });
 
       if (!result.canceled && result.assets) {
-        const newImages: Image360[] = result.assets.map((asset, index) => ({
-          id: generateId(),
-          uri: asset.uri,
-          title: `Scène ${selectedImages.length + index + 1}`,
-          description: "",
-        }));
+        const newImages: Image360[] = await Promise.all(
+          result.assets.map(async (asset, index) => {
+            const imgSupabase = await uploadImage(asset.uri);
+
+            return {
+              id: generateId(),
+              panorama: imgSupabase || "", // URL de l'image uploadée
+              thumbnail: imgSupabase, // Miniature générée
+              name: `Scène ${selectedImages.length + index + 1}`, // Nom donné par l'utilisateur
+              caption: "", // Description
+              links: [
+                {
+                  nodeId: "",
+                  position: {
+                    yaw: 0,
+                    pitch: 0,
+                  },
+                },
+              ],
+            };
+          })
+        );
 
         const updatedImages = [...selectedImages, ...newImages];
         syncWithAnnonce(updatedImages);
-
-        // Message de succès
-        Alert.alert(
-          "Images ajoutées",
-          `${newImages.length} image(s) ajoutée(s) avec succès`,
-          [{ text: "OK" }]
-        );
+        console.log("Donnee nouvelle image ✅", newImages);
 
         return true;
       }
@@ -101,11 +171,12 @@ export const useNumerisationState = () => {
   };
 
   // Mettre à jour les métadonnées d'une image par index
-  const updateImageMetadata = (index: number, title: string, description: string) => {
-    const updatedImages = selectedImages.map((img, i) => 
-      i === index ? { ...img, title, description } : img
+  const updateImageMetadata = (image360: Image360) => {
+    const updatedImages = selectedImages.map((img) =>
+      img.id === image360.id ? { ...img, ...image360 } : img
     );
     syncWithAnnonce(updatedImages);
+    console.log("✅ image mise a jour");
   };
 
   // Mettre à jour une image par ID (plus sûr)
@@ -164,49 +235,21 @@ export const useNumerisationState = () => {
 
   // Effacer toutes les images
   const clearAllImages = () => {
-    Alert.alert(
-      "Effacer tout",
-      "Êtes-vous sûr de vouloir supprimer toutes les images ?",
-      [
-        { text: "Annuler", style: "cancel" },
-        {
-          text: "Effacer",
-          style: "destructive",
-          onPress: () => {
-            syncWithAnnonce([]);
-          },
-        },
-      ]
-    );
-  };
-
-  // Ajouter une image depuis la caméra (à implémenter avec votre composant caméra)
-  const addImageFromCamera = (imageUri: string, title?: string) => {
-    const newImage: Image360 = {
-      id: generateId(),
-      uri: imageUri,
-      title: title || `Scène ${selectedImages.length + 1}`,
-      description: "",
-    };
-
-    const updatedImages = [...selectedImages, newImage];
-    syncWithAnnonce(updatedImages);
-  };
-
-  // Dupliquer une image
-  const duplicateImage = (index: number) => {
-    const imageToDuplicate = selectedImages[index];
-    if (!imageToDuplicate) return;
-
-    const duplicatedImage: Image360 = {
-      ...imageToDuplicate,
-      id: generateId(),
-      title: `${imageToDuplicate.title} (Copie)`,
-    };
-
-    const updatedImages = [...selectedImages];
-    updatedImages.splice(index + 1, 0, duplicatedImage);
-    syncWithAnnonce(updatedImages);
+    syncWithAnnonce([]);
+    // Alert.alert(
+    //   "Effacer tout",
+    //   "Êtes-vous sûr de vouloir supprimer toutes les images ?",
+    //   [
+    //     { text: "Annuler", style: "cancel" },
+    //     {
+    //       text: "Effacer",
+    //       style: "destructive",
+    //       onPress: () => {
+    //         syncWithAnnonce([]);
+    //       },
+    //     },
+    //   ]
+    // );
   };
 
   // Actions pour les modals
@@ -234,7 +277,7 @@ export const useNumerisationState = () => {
   const saveCurrentState = () => {
     saveAnnonce({
       ...annonce,
-      virtualSpace: selectedImages
+      virtualSpace: selectedImages,
     });
   };
 
@@ -244,9 +287,13 @@ export const useNumerisationState = () => {
   };
 
   return {
+    // chargement
+
+    isLoading,
+
     // Données
     annonce,
-    
+
     // États
     cameraVisible,
     setCameraVisible,
@@ -256,17 +303,16 @@ export const useNumerisationState = () => {
     selectedImages,
     selectedImageIndex,
     editingImageIndex,
-    isLoading,
 
     // Actions pour les images
     addImagesFromGallery,
-    addImageFromCamera,
+
     updateImageMetadata,
     updateImageById,
     removeImage,
     removeImageById,
     reorderImages,
-    duplicateImage,
+    // duplicateImage,
     clearAllImages,
 
     // Actions pour les modals

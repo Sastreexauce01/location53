@@ -54,18 +54,26 @@ export const VirtualTourViewer: React.FC<VirtualTourViewerProps> = ({
     );
   }
 
-  // Construire l'URL avec toutes les données de l'annonce
-  const tourData = {
-    ...annonce,
-    // On peut ajouter des métadonnées utiles
-    totalScenes: annonce.virtualSpace.length,
-    timestamp: Date.now(),
+  const baseUrl = "https://photo-sphere-viewer-data.netlify.app/assets/";
+  const caption = "Cape Florida Light, Key Biscayne <b>&copy; Pixexid</b>";
+
+  const image360 = {
+    id: "1",
+    panorama: baseUrl + "tour/key-biscayne-1.jpg",
+    thumbnail: baseUrl + "tour/key-biscayne-1-thumb.jpg",
+    name: "One",
+    caption: `[1] ${caption}`,
+    links: [{ nodeId: "2", position: { yaw: 0.8, pitch: -0.1 } }],
+    sphereCorrection: { pan: "33deg" },
   };
 
-  const galleryUrl = `https://panorama-gallery.netlify.app?data=${encodeURIComponent(
-    JSON.stringify(tourData)
-  )}`;
+  // Encodage en string URL-safe
+  const encodedData = encodeURIComponent(JSON.stringify(image360));
 
+  // URL vers la page Next.js (ici hébergée localement)
+  const url = `http://192.168.0.103:3000/image360?data=${encodedData}`;
+
+  // "https://panorama360-one.vercel.app/"
   return (
     <SafeAreaView style={styles.container}>
       <StatusBar barStyle="dark-content" backgroundColor="#E0DEF7" />
@@ -94,12 +102,59 @@ export const VirtualTourViewer: React.FC<VirtualTourViewerProps> = ({
       {/* WebView avec overlay de chargement */}
       <View style={styles.webViewContainer}>
         <WebView
-          source={{ uri: galleryUrl }}
+          source={{ uri: url }}
           style={styles.webView}
           javaScriptEnabled={true}
           domStorageEnabled={true}
           startInLoadingState={true}
           allowsInlineMediaPlayback={true}
+          // ✅ Ajouts pour le fullscreen
+          allowsFullscreenVideo={true} // Autoriser fullscreen
+          mediaPlaybackRequiresUserAction={false}
+          mixedContentMode="compatibility" // Pour HTTPS mixed content
+          // ✅ Communication bi-directionnelle
+          onMessage={(event) => {
+            try {
+              const data = JSON.parse(event.nativeEvent.data);
+
+              if (data.type === "REQUEST_FULLSCREEN") {
+                // Gérer le fullscreen côté natif
+                // handleFullscreen();
+              }
+
+              if (data.type === "EXIT_FULLSCREEN") {
+                // Sortir du fullscreen
+                // handleExitFullscreen();
+              }
+            } catch (error) {
+              console.log("Erreur parsing message WebView:", error);
+            }
+          }}
+          // ✅ Injection JavaScript pour améliorer l'expérience
+          injectedJavaScript={`
+    // Détecter les tentatives de fullscreen
+    document.addEventListener('fullscreenchange', function() {
+      if (document.fullscreenElement) {
+        window.ReactNativeWebView.postMessage(JSON.stringify({
+          type: 'FULLSCREEN_ENTERED'
+        }));
+      } else {
+        window.ReactNativeWebView.postMessage(JSON.stringify({
+          type: 'FULLSCREEN_EXITED'  
+        }));
+      }
+    });
+    
+    // Intercepter les erreurs de fullscreen
+    document.addEventListener('fullscreenerror', function() {
+      window.ReactNativeWebView.postMessage(JSON.stringify({
+        type: 'FULLSCREEN_ERROR',
+        message: 'Fullscreen non supporté dans cette WebView'
+      }));
+    });
+    
+    true; // Required for injected JS
+  `}
           renderLoading={() => (
             <View style={styles.loadingContainer}>
               <View style={styles.loadingContent}>

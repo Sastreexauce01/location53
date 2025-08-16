@@ -4,16 +4,15 @@ import {
   ScrollView,
   TouchableOpacity,
   Text,
-  ActivityIndicator,
-} from "react-native";
 
+} from "react-native";
 import { AnnonceItem } from "@/Components/AnnonceItem";
 import { useRouter } from "expo-router";
 import { Colors } from "@/Components/Colors";
 import { FontAwesome6 } from "@expo/vector-icons";
 import useAuth from "@/assets/hooks/useAuth";
-
 import useAnnonce_Data from "@/assets/hooks/useAnnonce_Data";
+import Loading from "@/Components/Loading";
 
 export default function Annonces() {
   const router = useRouter();
@@ -22,12 +21,7 @@ export default function Annonces() {
 
   // Écran de chargement pour l'authentification
   if (loading) {
-    return (
-      <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color={Colors.primary} />
-        <Text style={styles.loadingText}>Chargement...</Text>
-      </View>
-    );
+    return <Loading />;
   }
 
   // Si pas authentifié, ne rien afficher
@@ -37,12 +31,7 @@ export default function Annonces() {
 
   // Écran de chargement pour les annonces
   if (isLoadingAnnonces) {
-    return (
-      <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color={Colors.primary} />
-        <Text style={styles.loadingText}>Chargement des annonces...</Text>
-      </View>
-    );
+    return <Loading />;
   }
 
   return (
@@ -166,18 +155,5 @@ const styles = StyleSheet.create({
     color: "white",
     fontWeight: "500",
     fontSize: 14,
-  },
-
-  loadingText: {
-    marginTop: 12,
-    fontSize: 16,
-    color: Colors.gray,
-  },
-
-  loadingContainer: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    backgroundColor: "#F8F9FA",
   },
 });

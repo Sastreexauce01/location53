@@ -14,7 +14,7 @@ const VirtualTourPage = () => {
     (annonce) => annonce.id === id
   );
 
-  console.log("✅ Annonce   virtuelle ", Annonce_query);
+  // console.log("✅ Annonce   virtuelle ", Annonce_query);
   
   // Écran de chargement pour les annonces
   if (isLoadingAnnonces) {

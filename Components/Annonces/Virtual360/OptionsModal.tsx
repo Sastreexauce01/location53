@@ -2,9 +2,11 @@ import React from "react";
 import { Modal, TouchableOpacity, Text, StyleSheet, View } from "react-native";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import { Colors } from "../../Colors";
+import Loading from "@/assets/ui/Loading";
 
 interface OptionsModalProps {
   visible: boolean;
+  isLoading: boolean;
   onClose: () => void;
   onCameraPress: () => void;
   onGalleryPress: () => void;
@@ -12,10 +14,13 @@ interface OptionsModalProps {
 
 const OptionsModal: React.FC<OptionsModalProps> = ({
   visible,
+  isLoading,
   onClose,
   onCameraPress,
   onGalleryPress,
 }) => {
+  if (isLoading) return <Loading />;
+
   return (
     <Modal
       visible={visible}
@@ -35,10 +40,7 @@ const OptionsModal: React.FC<OptionsModalProps> = ({
         >
           <Text style={styles.modalTitle}>Ajouter une image</Text>
 
-          <TouchableOpacity
-            style={styles.optionButton}
-            onPress={onCameraPress}
-          >
+          <TouchableOpacity style={styles.optionButton} onPress={onCameraPress}>
             <View style={styles.optionIcon}>
               <Ionicons name="camera" size={24} color={Colors.primary} />
             </View>

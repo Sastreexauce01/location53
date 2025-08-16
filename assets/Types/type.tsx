@@ -1,4 +1,3 @@
-// Types/type.ts - Version corrigée
 
 export type AnnonceType = {
   id: string;
@@ -18,20 +17,29 @@ export type AnnonceType = {
   id_agent: string;
 };
 
+
+
 export interface Image360 {
-  id: string; // ✅ Ajout de l'ID unique
-  uri: string; // URL ou chemin local
-  title: string;
-  description: string;
+  id: string;
+  panorama: string; // URL de l'image uploadée
+  thumbnail?: string; // Miniature générée
+  name?: string; // Nom donné par l'utilisateur
+  caption?: string; // Description
+  links?: VirtualTourLink[];
+}
+
+export interface VirtualTourLink {
+  nodeId: string;
+  position: {
+    yaw?: number;
+    pitch?: number;
+  };
 }
 
 
 
-
-
-
 // ✅ Type temporaire pour les données brutes de Supabase
- export interface SupabaseAnnonce {
+export interface SupabaseAnnonce {
   id: string;
   nom_annonce: string;
   type_annonce: string;
@@ -53,6 +61,36 @@ export interface Image360 {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 export interface Hotspot {
   id: string;
   yaw: number; // horizontal [-π à π]
@@ -61,8 +99,6 @@ export interface Hotspot {
   title: string;
   targetSceneId: string; // Pour type 'scene'
 }
-
-
 
 // Api pour la generattion d'image 360
 

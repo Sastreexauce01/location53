@@ -3,15 +3,12 @@ import { View, Text, TouchableOpacity, Image, StyleSheet } from "react-native";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import { SimpleLineIcons } from "@expo/vector-icons";
 import { Colors } from "../../Colors";
+import { Image360 } from "@/assets/Types/type";
 
-interface ImageMetadata {
-  uri: string;
-  title: string;
-  description: string;
-}
+
 
 interface ImagesGridProps {
-  images: ImageMetadata[];
+  images: Image360[];
   onImagePress: (index: number) => void;
   onImageOptions: (index: number) => void;
   onAddMore: () => void;
@@ -50,7 +47,7 @@ const ImagesGrid: React.FC<ImagesGridProps> = ({
               style={styles.imageContainer}
             >
               <Image
-                source={{ uri: imageData.uri }}
+                source={{ uri: imageData.panorama }}
                 style={styles.imagePreview}
               />
               <View style={styles.imageIndex}>
@@ -67,7 +64,7 @@ const ImagesGrid: React.FC<ImagesGridProps> = ({
 
             <View style={styles.imageName}>
               <Text style={styles.imageNameText} numberOfLines={1}>
-                {imageData.title || `Scène ${index + 1}`}
+                {imageData.name || `Scène ${index + 1}`}
               </Text>
             </View>
           </View>
