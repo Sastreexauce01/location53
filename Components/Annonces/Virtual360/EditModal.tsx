@@ -40,13 +40,13 @@ const EditModal: React.FC<EditModalProps> = ({
   }, [imageData]);
 
   // Encodage en string URL-safe demo data
-  const encodedData = encodeURIComponent(JSON.stringify(imageData));
-  const url = `http://192.168.0.100:3000/image360?data=${encodedData}`;
+  const encodedData = encodeURIComponent(JSON.stringify([imageData]));
+  const url = `https://panorama360-one.vercel.app/image360?data=${encodedData}`;
   
-  console.log("✅Donnee ", imageIndex);
+  console.log("✅ ImageIndex state:", imageIndex);
 
   const handleSave = () => {
-    console.log("✅Donnee ", imageIndex);
+    console.log("✅ Sauvegarde:", imageIndex);
     onSave(imageIndex);
     onClose();
   };
@@ -56,8 +56,10 @@ const EditModal: React.FC<EditModalProps> = ({
     onClose();
   };
 
+  // 🛠️ Fonction corrigée
   const updateImageIndex = (field: string, value: any) => {
-    if (field === "navigationTo") {
+    if (field === "navigationTo" && value) {
+      // Ajouter un nouveau lien
       setImageIndex((prev) => ({
         ...prev,
         links: [
@@ -65,13 +67,22 @@ const EditModal: React.FC<EditModalProps> = ({
           { nodeId: value, position: { yaw: 0, pitch: 0 } },
         ],
       }));
+    } else if (field !== "navigationTo") {
+      // Mettre à jour les autres champs
+      setImageIndex((prev) => ({
+        ...prev,
+        [field]: value,
+      }));
     }
+    // ❌ Plus de double setImageIndex !
+  };
 
+  // 🗑️ Fonction pour supprimer un lien
+  const removeLink = (nodeIdToRemove: string) => {
     setImageIndex((prev) => ({
       ...prev,
-      [field]: value,
+      links: prev.links?.filter(link => link.nodeId !== nodeIdToRemove) || [],
     }));
-    console.log("✅Donne", imageIndex);
   };
 
   if (!imageData) return null;
@@ -111,7 +122,7 @@ const EditModal: React.FC<EditModalProps> = ({
                   style={styles.webView}
                   javaScriptEnabled={true}
                   domStorageEnabled={true}
-                  allowsInlineMediaPlayback={true}
+                  allowsInlineMediaPlaybook={true}
                   mediaPlaybackRequiresUserAction={false}
                   scrollEnabled={false}
                   bounces={false}
@@ -159,27 +170,33 @@ const EditModal: React.FC<EditModalProps> = ({
                 />
               </View>
 
-              {/* 4. Navigation vers */}
+              {/* 4. Navigation - Ajouter un lien */}
               <View style={styles.inputSection}>
                 <View style={styles.labelContainer}>
                   <Ionicons name="navigate" size={20} color={Colors.primary} />
-                  <Text style={styles.inputLabel}>Navigation vers</Text>
+                  <Text style={styles.inputLabel}>Ajouter une navigation</Text>
                 </View>
                 <View style={styles.pickerContainer}>
                   <Picker
-                    selectedValue={""}
-                    onValueChange={(itemValue) =>
-                      updateImageIndex("navigationTo", itemValue)
-                    }
+                    selectedValue="" // ✅ Toujours vide pour ajouter
+                    onValueChange={(itemValue) => {
+                      if (itemValue) {
+                        updateImageIndex("navigationTo", itemValue);
+                      }
+                    }}
                     style={styles.picker}
                   >
                     <Picker.Item
-                      label="Aucune navigation"
+                      label="Choisir une scène..."
                       value=""
                       color="#999"
                     />
                     {images
-                      .filter((item) => item.id !== imageData.id) // Exclure l'image actuelle
+                      .filter((item) => {
+                        // Exclure l'image actuelle ET les liens déjà existants
+                        const existingLinks = imageIndex.links?.map(l => l.nodeId) || [];
+                        return item.id !== imageData.id && !existingLinks.includes(item.id);
+                      })
                       .map((item) => (
                         <Picker.Item
                           label={item.name || `Scène ${item.id}`}
@@ -191,6 +208,32 @@ const EditModal: React.FC<EditModalProps> = ({
                   </Picker>
                 </View>
               </View>
+
+              {/* 5. Liste des liens existants */}
+              {imageIndex.links && imageIndex.links.length > 0 && (
+                <View style={styles.inputSection}>
+                  <View style={styles.labelContainer}>
+                    <Ionicons name="list" size={20} color={Colors.primary} />
+                    <Text style={styles.inputLabel}>Navigations configurées</Text>
+                  </View>
+                  {imageIndex.links.map((link, index) => {
+                    const targetImage = images.find(img => img.id === link.nodeId);
+                    return (
+                      <View key={index} style={styles.linkItem}>
+                        <Text style={styles.linkText}>
+                          → {targetImage?.name || `Scène ${link.nodeId}`}
+                        </Text>
+                        <TouchableOpacity
+                          onPress={() => removeLink(link.nodeId)}
+                          style={styles.removeLinkButton}
+                        >
+                          <Ionicons name="close-circle" size={20} color="#ff4444" />
+                        </TouchableOpacity>
+                      </View>
+                    );
+                  })}
+                </View>
+              )}
             </View>
 
             {/* Actions */}
@@ -307,6 +350,23 @@ const styles = StyleSheet.create({
   },
   picker: {
     height: 50,
+  },
+  linkItem: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    backgroundColor: "#f8f9fa",
+    padding: 12,
+    borderRadius: 8,
+    marginBottom: 8,
+  },
+  linkText: {
+    fontSize: 14,
+    color: "#333",
+    flex: 1,
+  },
+  removeLinkButton: {
+    padding: 4,
   },
   editActions: {
     flexDirection: "row",

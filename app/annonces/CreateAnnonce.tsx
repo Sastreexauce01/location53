@@ -25,7 +25,7 @@ import Final_CreateAnnonce from "@/Components/Annonces/Final_CreateAnnonce";
 import useAuth from "@/assets/hooks/useAuth";
 import { useAnnonce } from "@/assets/hooks/useAnnonce";
 import { supabase } from "@/utils/supabase";
-import * as FileSystem from "expo-file-system";
+
 import { uploadImage } from "@/assets/hooks/useNumerisation";
 
 const CreateAnnonce = () => {
@@ -113,37 +113,7 @@ const CreateAnnonce = () => {
 
       console.log("✅ Annonce créée avec ID:", nouvelleAnnonce.id);
 
-      // 2. Upload des images normales
-      // let imageUrls: string[] = [];
-
-      // if (annonce.image && annonce.image.length > 0) {
-      //   console.log(`📸 Upload de ${annonce.image.length} images normales...`);
-
-      //   const uploadPromises = annonce.image.map((imageUri) =>
-      //     uploadImageToStorage(imageUri, nouvelleAnnonce.id, false)
-      //   );
-
-      //   const results = await Promise.allSettled(uploadPromises);
-      //   imageUrls = results
-      //     .filter((result) => result.status === "fulfilled" && result.value)
-      //     .map((result) => (result as PromiseFulfilledResult<string>).value);
-
-      //   console.log(`✅ ${imageUrls.length} images normales uploadées`);
-      // }
-
-      // // 3. Mettre à jour l'annonce avec les URLs des images
-      // if (imageUrls.length > 0) {
-      //   const { error: updateError } = await supabase
-      //     .from("annonces")
-      //     .update({ images: imageUrls })
-      //     .eq("id", nouvelleAnnonce.id);
-
-      //   if (updateError) {
-      //     console.error("❌ Erreur update images:", updateError);
-      //     throw updateError;
-      //   }
-      //   console.log("✅ URLs images mises à jour dans l'annonce");
-      // }
+      
 
       // 4. Upload et création des espaces virtuels (images 360°)
       if (annonce.virtualSpace && annonce.virtualSpace.length > 0) {
@@ -158,6 +128,7 @@ const CreateAnnonce = () => {
             const { error: virtualError } = await supabase
               .from("virtual_spaces")
               .insert({
+                id:virtualSpace.id,
                 annonce_id: nouvelleAnnonce.id,
                 name: virtualSpace.name,
                 panorama: virtualSpace.panorama, // URL déjà sur Supabase

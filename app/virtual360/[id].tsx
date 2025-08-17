@@ -8,13 +8,14 @@ import useAnnonce_Data from "@/assets/hooks/useAnnonce_Data";
 
 const VirtualTourPage = () => {
   const { id } = useLocalSearchParams();
+  
   const { listAppartments, isLoadingAnnonces } = useAnnonce_Data();
 
   const Annonce_query: AnnonceType | undefined = listAppartments.find(
     (annonce) => annonce.id === id
   );
 
-  // console.log("✅ Annonce   virtuelle ", Annonce_query);
+  console.log("✅ Annonce   virtuelle ", Annonce_query);
   
   // Écran de chargement pour les annonces
   if (isLoadingAnnonces) {

@@ -8,7 +8,6 @@ import Search from "@/Components/Search";
 
 const SearchScreen = () => {
   const router = useRouter();
-
   const [searchQuery, setSearchQuery] = useState<string>(""); // Texte de la recherche
   return (
     <SafeAreaView style={{ flex: 1 }}>

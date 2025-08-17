@@ -3,11 +3,36 @@ import { Fontisto, MaterialIcons } from "@expo/vector-icons";
 import { Colors } from "@/Components/Colors";
 import { router, useLocalSearchParams } from "expo-router";
 import ListResults from "@/Components/Annonces/ListResults";
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import MapsResults from "@/Components/Annonces/MapsResults";
-import Data_Appartements from "@/Data/data-appartements.json";
+import { AnnonceType } from "@/assets/Types/type";
+import useAnnonce_Data from "@/assets/hooks/useAnnonce_Data";
 
 const SearchResults = () => {
+
+  const [listAppartments, setListAppartments] = useState<AnnonceType[]>([]);
+  
+  const [isLoading, setIsLoading] = useState(false);
+
+  const { fetchdataAll } = useAnnonce_Data();
+
+  useEffect(() => {
+    const loadData = async () => {
+      setIsLoading(true);
+      try {
+        const data = await fetchdataAll();
+        setListAppartments(data || []); // ✅ Gérer le cas où data est undefined
+      } catch (error) {
+        console.error("❌ Erreur lors du chargement:", error);
+        setListAppartments([]);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    loadData();
+  }, [fetchdataAll]); // ✅ Ajouter fetchdataAll dans les dépendances
+
   const [isListView, setIsListView] = useState(true);
   const { query } = useLocalSearchParams();
 
@@ -36,7 +61,7 @@ const SearchResults = () => {
 
   // Amélioration de l'algorithme de filtrage avec recherche intelligente
   const Appartement_filtre = useMemo(() => {
-    if (!queryString.trim()) return Data_Appartements;
+    if (!queryString.trim()) return listAppartments;
 
     // Diviser la requête en mots-clés et nettoyer
     const searchTerms = queryString
@@ -45,7 +70,7 @@ const SearchResults = () => {
       .map((term) => term.trim())
       .filter((term) => term.length > 0); // Supprimer les termes vides
 
-    return Data_Appartements.filter((item) => {
+    return listAppartments.filter((item) => {
       if (!item.adresse) return false;
 
       const adresseLower = item.adresse.toLowerCase();
@@ -61,7 +86,7 @@ const SearchResults = () => {
         );
       });
     });
-  }, [queryString, fuzzyMatch]); // ✅ Ajout de fuzzyMatch dans les dépendances
+  }, [queryString, listAppartments]); // ✅ Ajout de fuzzyMatch dans les dépendances
 
   // Amélioration de l'affichage du titre avec ellipsis intelligent
   const displayTitle = useMemo(() => {

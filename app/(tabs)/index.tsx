@@ -13,9 +13,15 @@ import { useRouter } from "expo-router";
 import EvilIcons from "@expo/vector-icons/EvilIcons";
 import AppartementList from "@/Components/home/AppartementList";
 import DestinationList from "@/Components/home/DestinationList";
+import useAnnonce_Data from "@/assets/hooks/useAnnonce_Data";
+import Loading from "@/Components/Loading";
 
 export default function Index() {
+  const { isLoadingAnnonces } = useAnnonce_Data();
+
   const router = useRouter();
+
+  if (isLoadingAnnonces) return <Loading />;
 
   return (
     <KeyboardAvoidingView
@@ -31,7 +37,7 @@ export default function Index() {
           {/* Section Input */}
           <Pressable
             style={styles.container_input}
-            onPress={() => router.push("/recherche/SearchScreen")}
+            onPress={() => router.push("/(tabs)/recherche")}
             // recherche
             // Précharge la page Screen/annonces/SearchScreen
           >
@@ -48,7 +54,9 @@ export default function Index() {
             <Text style={styles.sectionTitle}>Quelques propriétés</Text>
             <AppartementList />
             <View>
-              <TouchableOpacity onPress={() => router.push("/inscription")}>
+              <TouchableOpacity
+                onPress={() => router.push("/(tabs)/recherche")}
+              >
                 <Text style={styles.viewAll}> Voir toutes les propriétés</Text>
               </TouchableOpacity>
             </View>

@@ -54,26 +54,12 @@ export const VirtualTourViewer: React.FC<VirtualTourViewerProps> = ({
     );
   }
 
-  const baseUrl = "https://photo-sphere-viewer-data.netlify.app/assets/";
-  const caption = "Cape Florida Light, Key Biscayne <b>&copy; Pixexid</b>";
-
-  const image360 = {
-    id: "1",
-    panorama: baseUrl + "tour/key-biscayne-1.jpg",
-    thumbnail: baseUrl + "tour/key-biscayne-1-thumb.jpg",
-    name: "One",
-    caption: `[1] ${caption}`,
-    links: [{ nodeId: "2", position: { yaw: 0.8, pitch: -0.1 } }],
-    sphereCorrection: { pan: "33deg" },
-  };
-
   // Encodage en string URL-safe
-  const encodedData = encodeURIComponent(JSON.stringify(image360));
+  const encodedData = encodeURIComponent(JSON.stringify(annonce.virtualSpace));
 
   // URL vers la page Next.js (ici hébergée localement)
-  const url = `http://192.168.0.103:3000/image360?data=${encodedData}`;
+  const url = `http://192.168.0.101:3000?data=${encodedData}`;
 
-  // "https://panorama360-one.vercel.app/"
   return (
     <SafeAreaView style={styles.container}>
       <StatusBar barStyle="dark-content" backgroundColor="#E0DEF7" />

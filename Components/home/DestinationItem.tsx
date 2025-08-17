@@ -6,7 +6,7 @@ import {
   ActivityIndicator,
 } from "react-native";
 
-import { Link } from "expo-router";
+import { useRouter } from "expo-router";
 import { Colors } from "../Colors";
 import { Image } from "expo-image";
 import { useState } from "react";
@@ -18,31 +18,31 @@ type props = {
   };
 };
 const DestinationItem = ({ item }: props) => {
+  const router = useRouter();
+
   const [isLoading, setIsLoading] = useState(true);
   return (
     <View style={styles.container_Destination}>
-      <Link href={`../Screen/annonces/${item.id}`} asChild>
-        <Pressable>
-          {/* Section Image */}
+      <Pressable onPress={() => router.push('/(tabs)/recherche')}>
+        {/* Section Image */}
 
-          <View style={styles.container_image}>
-            {isLoading && (
-              <ActivityIndicator
-                size="large"
-                color={Colors.primary}
-                style={styles.loader}
-              />
-            )}
-            <Image
-              source={{ uri: item.image }}
-              onLoadEnd={() => setIsLoading(false)}
-              style={styles.image}
+        <View style={styles.container_image}>
+          {isLoading && (
+            <ActivityIndicator
+              size="large"
+              color={Colors.primary}
+              style={styles.loader}
             />
-          </View>
+          )}
+          <Image
+            source={{ uri: item.image }}
+            onLoadEnd={() => setIsLoading(false)}
+            style={styles.image}
+          />
+        </View>
 
-          <Text style={styles.text}>{item.nom_ville}</Text>
-        </Pressable>
-      </Link>
+        <Text style={styles.text}>{item.nom_ville}</Text>
+      </Pressable>
     </View>
   );
 };
@@ -53,7 +53,7 @@ const styles = StyleSheet.create({
   container_Destination: {
     flexDirection: "column",
     justifyContent: "space-between",
-   // alignItems: "center",
+    // alignItems: "center",
     height: 200,
     width: 300,
     // backgroundColor: Colors.light,
@@ -72,8 +72,8 @@ const styles = StyleSheet.create({
   },
 
   text: {
-    padding:10
-    },
+    padding: 10,
+  },
 
   loader: {
     position: "absolute",
