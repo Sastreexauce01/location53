@@ -26,6 +26,7 @@ import useAuth from "@/assets/hooks/useAuth";
 import { useAnnonce } from "@/assets/hooks/useAnnonce";
 import { supabase } from "@/utils/supabase";
 import * as FileSystem from "expo-file-system";
+import { uploadImage } from "@/assets/hooks/useNumerisation";
 
 const CreateAnnonce = () => {
   const [step, setStep] = useState<number>(1);
@@ -50,69 +51,16 @@ const CreateAnnonce = () => {
   if (!isAuthenticated || !user) {
     return null;
   }
-  // ========================================
-  // 📤 FONCTION D'UPLOAD D'IMAGES
-  // ========================================
 
-  const uploadImageToStorage = async (
-    imageUri: string,
-    annonceId: string,
-    isVirtual: boolean = false
-  ) => {
-    try {
-      // Déterminer le bucket selon le type d'image
-      const bucket = isVirtual ? "virtualspaces" : "annonces";
 
-      // Générer un nom de fichier unique
-      const fileExt = imageUri.split(".").pop()?.toLowerCase() || "jpg";
-      const fileName = `${Date.now()}-${Math.random()
-        .toString(36)
-        .substr(2, 9)}.${fileExt}`;
-      const filePath = `${user.id}/${annonceId}/${fileName}`;
-      console.log(`📤 Upload vers ${bucket}/${filePath}`);
-
-      // Lire le fichier local en base64
-      const base64 = await FileSystem.readAsStringAsync(imageUri, {
-        encoding: FileSystem.EncodingType.Base64,
-      });
-
-      // Convertir en Uint8Array
-      const uint8Array = Uint8Array.from(atob(base64), (c) => c.charCodeAt(0));
-
-      // Upload vers Supabase Storage
-      const { data, error } = await supabase.storage
-        .from(bucket)
-        .upload(filePath, uint8Array, {
-          contentType: `image/${fileExt}`,
-          upsert: false,
-        });
-      console.log("✅ Donnee Data", data);
-
-      if (error) {
-        console.error(`❌ Erreur upload ${bucket}:`, error);
-        throw error;
-      }
-
-      // Obtenir l'URL publique
-      const { data: publicData } = supabase.storage
-        .from(bucket)
-        .getPublicUrl(filePath);
-
-      console.log(`✅ Image uploadée: ${publicData.publicUrl}`);
-      return publicData.publicUrl;
-    } catch (error) {
-      console.error("❌ Erreur upload image:", error);
-      return null;
-    }
-  };
-
+ 
   // ========================================
   // 📝 FONCTION HANDLESUBMIT AVEC SUPABASE
   // ========================================
 
   const handlleSubmit = async () => {
-    console.log("🔥 handleSubmit appelée");
-    console.log("Données à envoyer ✅✅✅✅", annonce);
+    console.log("🔥 handle mit appelée");
+    console.log("✅✅✅Données à recu ", annonce);
 
     // Validation des données obligatoires
     if (!annonce.nomAnnonce || !annonce.adresse || !annonce.prix) {
@@ -124,6 +72,14 @@ const CreateAnnonce = () => {
 
     try {
       console.log("✅ Utilisateur authentifié:", user.email);
+
+      // 2. Upload des images normales
+      const allImages: string[] = await Promise.all(
+        annonce.image.map(async (img) => {
+          const imgUrl = await uploadImage(img);
+          return imgUrl;
+        })
+      );
 
       // 1. Créer l'annonce d'abord (sans images)
       const annonceData = {
@@ -139,7 +95,7 @@ const CreateAnnonce = () => {
         nbre_salle_bains: annonce.nbre_salle_bains,
         accessibilite: annonce.accessibilite || [],
         id_agent: user.id,
-        images: [], // Vide pour l'instant
+        images: allImages,
       };
 
       console.log("📝 Création annonce en BDD...");
@@ -158,65 +114,62 @@ const CreateAnnonce = () => {
       console.log("✅ Annonce créée avec ID:", nouvelleAnnonce.id);
 
       // 2. Upload des images normales
-      let imageUrls: string[] = [];
-      if (annonce.image && annonce.image.length > 0) {
-        console.log(`📸 Upload de ${annonce.image.length} images normales...`);
+      // let imageUrls: string[] = [];
 
-        const uploadPromises = annonce.image.map((imageUri) =>
-          uploadImageToStorage(imageUri, nouvelleAnnonce.id, false)
-        );
+      // if (annonce.image && annonce.image.length > 0) {
+      //   console.log(`📸 Upload de ${annonce.image.length} images normales...`);
 
-        const results = await Promise.allSettled(uploadPromises);
-        imageUrls = results
-          .filter((result) => result.status === "fulfilled" && result.value)
-          .map((result) => (result as PromiseFulfilledResult<string>).value);
+      //   const uploadPromises = annonce.image.map((imageUri) =>
+      //     uploadImageToStorage(imageUri, nouvelleAnnonce.id, false)
+      //   );
 
-        console.log(`✅ ${imageUrls.length} images normales uploadées`);
-      }
+      //   const results = await Promise.allSettled(uploadPromises);
+      //   imageUrls = results
+      //     .filter((result) => result.status === "fulfilled" && result.value)
+      //     .map((result) => (result as PromiseFulfilledResult<string>).value);
 
-      // 3. Mettre à jour l'annonce avec les URLs des images
-      if (imageUrls.length > 0) {
-        const { error: updateError } = await supabase
-          .from("annonces")
-          .update({ images: imageUrls })
-          .eq("id", nouvelleAnnonce.id);
+      //   console.log(`✅ ${imageUrls.length} images normales uploadées`);
+      // }
 
-        if (updateError) {
-          console.error("❌ Erreur update images:", updateError);
-          throw updateError;
-        }
-        console.log("✅ URLs images mises à jour dans l'annonce");
-      }
+      // // 3. Mettre à jour l'annonce avec les URLs des images
+      // if (imageUrls.length > 0) {
+      //   const { error: updateError } = await supabase
+      //     .from("annonces")
+      //     .update({ images: imageUrls })
+      //     .eq("id", nouvelleAnnonce.id);
+
+      //   if (updateError) {
+      //     console.error("❌ Erreur update images:", updateError);
+      //     throw updateError;
+      //   }
+      //   console.log("✅ URLs images mises à jour dans l'annonce");
+      // }
 
       // 4. Upload et création des espaces virtuels (images 360°)
       if (annonce.virtualSpace && annonce.virtualSpace.length > 0) {
         console.log(
-          `🌐 Upload de ${annonce.virtualSpace.length} espaces virtuels...`
+          `🌐 Création de ${annonce.virtualSpace.length} espaces virtuels...`
         );
 
         for (const virtualSpace of annonce.virtualSpace) {
-          // Upload de l'image 360°
-          const virtualUrl = await uploadImageToStorage(
-            virtualSpace.uri,
-            nouvelleAnnonce.id,
-            true
-          );
-
-          if (virtualUrl) {
-            // Créer l'entrée dans virtual_spaces
+          if (virtualSpace) {
+            // Pas besoin d'upload, juste insérer les données
+            // virtualSpace.panorama contient déjà l'URL Supabase
             const { error: virtualError } = await supabase
               .from("virtual_spaces")
               .insert({
                 annonce_id: nouvelleAnnonce.id,
-                uri: virtualUrl,
-                title: virtualSpace.title,
-                description: virtualSpace.description,
+                name: virtualSpace.name,
+                panorama: virtualSpace.panorama, // URL déjà sur Supabase
+                thumbnail: virtualSpace.thumbnail,
+                caption: virtualSpace.caption,
+                links: virtualSpace.links,
               });
 
             if (virtualError) {
               console.error("❌ Erreur création virtual_space:", virtualError);
             } else {
-              console.log(`✅ Espace virtuel créé: ${virtualSpace.title}`);
+              console.log(`✅ Espace virtuel créé: ${virtualSpace.name}`);
             }
           }
         }

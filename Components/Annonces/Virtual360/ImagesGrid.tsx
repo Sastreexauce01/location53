@@ -1,11 +1,10 @@
 import React from "react";
-import { View, Text, TouchableOpacity, Image, StyleSheet } from "react-native";
+import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import { SimpleLineIcons } from "@expo/vector-icons";
 import { Colors } from "../../Colors";
 import { Image360 } from "@/assets/Types/type";
-
-
+import { Image } from "expo-image";
 
 interface ImagesGridProps {
   images: Image360[];
@@ -41,7 +40,6 @@ const ImagesGrid: React.FC<ImagesGridProps> = ({
       <View style={styles.imagesGrid}>
         {images.map((imageData, index) => (
           <View key={index} style={styles.imagePreviewWrapper}>
-            
             <TouchableOpacity
               onPress={() => onImagePress(index)}
               style={styles.imageContainer}
@@ -49,6 +47,8 @@ const ImagesGrid: React.FC<ImagesGridProps> = ({
               <Image
                 source={{ uri: imageData.panorama }}
                 style={styles.imagePreview}
+                contentFit="cover"
+                transition={200}
               />
               <View style={styles.imageIndex}>
                 <Text style={styles.imageIndexText}>{index + 1}</Text>

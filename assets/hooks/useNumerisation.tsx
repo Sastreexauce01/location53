@@ -7,59 +7,9 @@ import { supabase } from "@/utils/supabase";
 import * as FileSystem from "expo-file-system";
 import { Buffer } from "buffer";
 
-export const useNumerisationState = () => {
-  const { annonce, saveAnnonce } = useAnnonce();
 
-  // États pour les modals
-  const [cameraVisible, setCameraVisible] = useState(false);
-  const [optionsModalVisible, setOptionsModalVisible] = useState(false);
-  const [previewModalVisible, setPreviewModalVisible] = useState(false);
-  const [editModalVisible, setEditModalVisible] = useState(false);
 
-  // États pour les images (synchronisé avec l'annonce)
-  const [selectedImages, setSelectedImages] = useState<Image360[]>(
-    annonce.virtualSpace || []
-  );
-
-  const [selectedImageIndex, setSelectedImageIndex] = useState(0);
-  const [editingImageIndex, setEditingImageIndex] = useState(0);
-
-  const [isLoading, setIsLoading] = useState(false);
-
-  // Génération d'ID unique pour chaque image
-  const generateId = () =>
-    Date.now().toString() + Math.random().toString(36).substr(2, 9);
-
-  // Fonction utilitaire pour synchroniser les images avec l'annonce
-  const syncWithAnnonce = (newImages: Image360[]) => {
-    setSelectedImages(newImages);
-    saveAnnonce({
-      ...annonce,
-      virtualSpace: newImages,
-    });
-  };
-
-  // Utilitaires
-  const requestPermission = async () => {
-    try {
-      const { status } =
-        await ImagePicker.requestMediaLibraryPermissionsAsync();
-      if (status !== "granted") {
-        Alert.alert(
-          "Permission requise",
-          "Nous avons besoin de l'autorisation pour accéder à votre galerie.",
-          [{ text: "OK" }]
-        );
-        return false;
-      }
-      return true;
-    } catch (error) {
-      console.error("Erreur de permission:", error);
-      return false;
-    }
-  };
-
-  const uploadImage = async (imgUri: string): Promise<string> => {
+export const uploadImage = async (imgUri: string): Promise<string> => {
     try {
       if (!imgUri) return "";
 
@@ -107,6 +57,111 @@ export const useNumerisationState = () => {
       return ""; // Retourner null en cas d'erreur
     }
   };
+
+  
+export const useNumerisationState = () => {
+
+  const { annonce, saveAnnonce } = useAnnonce();
+
+  // États pour les modals
+  const [cameraVisible, setCameraVisible] = useState(false);
+  const [optionsModalVisible, setOptionsModalVisible] = useState(false);
+  const [previewModalVisible, setPreviewModalVisible] = useState(false);
+  const [editModalVisible, setEditModalVisible] = useState(false);
+
+  // États pour les images (synchronisé avec l'annonce)
+  const [selectedImages, setSelectedImages] = useState<Image360[]>(
+    annonce.virtualSpace || []
+  );
+
+  const [selectedImageIndex, setSelectedImageIndex] = useState(0);
+  const [editingImageIndex, setEditingImageIndex] = useState(0);
+  const [isLoading, setIsLoading] = useState(false);
+
+  // Génération d'ID unique pour chaque image
+  const generateId = () =>
+    Date.now().toString() + Math.random().toString(36).substr(2, 9);
+
+  // Fonction utilitaire pour synchroniser les images avec l'annonce
+  const syncWithAnnonce = (newImages: Image360[]) => {
+    setSelectedImages(newImages);
+    saveAnnonce({
+      ...annonce,
+      virtualSpace: newImages,
+    });
+  };
+
+  // Utilitaires
+  const requestPermission = async () => {
+    try {
+      const { status } =
+        await ImagePicker.requestMediaLibraryPermissionsAsync();
+      if (status !== "granted") {
+        Alert.alert(
+          "Permission requise",
+          "Nous avons besoin de l'autorisation pour accéder à votre galerie.",
+          [{ text: "OK" }]
+        );
+        return false;
+      }
+      return true;
+    } catch (error) {
+      console.error("Erreur de permission:", error);
+      return false;
+    }
+  };
+
+// export const uploadImage = async (imgUri: string): Promise<string> => {
+//     try {
+//       if (!imgUri) return "";
+
+//       // Extraire l'extension et créer un nom unique
+//       const fileExt = imgUri.split(".").pop()?.toLowerCase() || "jpg";
+//       const fileName = `${Date.now()}-${Math.random()
+//         .toString(36)
+//         .substr(2, 9)}.${fileExt}`;
+
+//       // Lire le fichier local en base64
+//       const base64 = await FileSystem.readAsStringAsync(imgUri, {
+//         encoding: FileSystem.EncodingType.Base64,
+//       });
+
+//       // Convertir Base64 en Uint8Array
+//       const uint8Array = new Uint8Array(Buffer.from(base64, "base64"));
+
+//       // Upload vers Supabase Storage
+//       const { data, error } = await supabase.storage
+//         .from("publics")
+//         .upload(fileName, uint8Array, {
+//           contentType: `image/${fileExt}`,
+//           upsert: false,
+//         });
+
+//       if (error) {
+//         console.error("❌ Erreur Supabase:", error);
+//         throw new Error(error.message);
+//       }
+
+//       if (!data) {
+//         throw new Error("Pas de données retournées");
+//       }
+
+//       // Obtenir l'URL publique
+//       const { data: publicData } = supabase.storage
+//         .from("publics")
+//         .getPublicUrl(data.path);
+
+//       console.log(`✅ Image uploadée: ${publicData.publicUrl}`);
+
+//       return publicData.publicUrl;
+//     } catch (err) {
+//       console.error("❌ Erreur upload :", err);
+//       return ""; // Retourner null en cas d'erreur
+//     }
+//   };
+
+
+
 
   // Actions pour les images
   const addImagesFromGallery = async () => {

@@ -151,7 +151,6 @@ const useAnnonce_Data = () => {
   return {
     handleUpdate,
     handleDelete,
-
     listAppartments,
     setListAppartments,
     isLoadingAnnonces,

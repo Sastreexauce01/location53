@@ -183,6 +183,7 @@ const Photos_CreateAnnonce = () => {
     );
   };
 
+  
   return (
     <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
       {/* Section Title */}

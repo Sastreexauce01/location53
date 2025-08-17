@@ -41,7 +41,7 @@ const EditModal: React.FC<EditModalProps> = ({
 
   // Encodage en string URL-safe demo data
   const encodedData = encodeURIComponent(JSON.stringify(imageData));
-  const url = `http://192.168.0.2:3000/image360?data=${encodedData}`;
+  const url = `http://192.168.0.100:3000/image360?data=${encodedData}`;
   
   console.log("✅Donnee ", imageIndex);
 
