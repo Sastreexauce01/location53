@@ -235,7 +235,6 @@ const styles = StyleSheet.create({
     flex: 1,
     paddingTop: 50,
     padding: 1,
-    gap: 50,
     backgroundColor: "white",
     justifyContent: "space-between",
   },

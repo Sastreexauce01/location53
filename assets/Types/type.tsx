@@ -1,4 +1,3 @@
-
 export type AnnonceType = {
   id: string;
   nomAnnonce: string;
@@ -17,8 +16,6 @@ export type AnnonceType = {
   id_agent: string;
 };
 
-
-
 export interface Image360 {
   id: string;
   panorama: string; // URL de l'image uploadée
@@ -26,6 +23,7 @@ export interface Image360 {
   name?: string; // Nom donné par l'utilisateur
   caption?: string; // Description
   links?: VirtualTourLink[];
+  marker?: VirtualTourLink[];
 }
 
 export interface VirtualTourLink {
@@ -35,8 +33,6 @@ export interface VirtualTourLink {
     pitch?: number;
   };
 }
-
-
 
 // ✅ Type temporaire pour les données brutes de Supabase
 export interface SupabaseAnnonce {
@@ -57,39 +53,6 @@ export interface SupabaseAnnonce {
   updated_at: string;
   id_agent: string;
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 export interface Hotspot {
   id: string;

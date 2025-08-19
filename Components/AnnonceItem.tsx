@@ -17,9 +17,10 @@ import { useRouter } from "expo-router";
 
 type Props = {
   item: AnnonceType;
+  onRefresh?: () => void; // Nouvelle prop pour le rafraîchissement
 };
 
-export const AnnonceItem = ({ item }: Props) => {
+export const AnnonceItem = ({ item, onRefresh }: Props) => {
   const [isLoading, setIsLoading] = useState(true); // État de chargement
   const [modalVisible, setModalVisible] = useState(false); // État du modal
   const { handleUpdate, handleDelete } = useAnnonce_Data();
@@ -36,6 +37,19 @@ export const AnnonceItem = ({ item }: Props) => {
   );
 
   const router = useRouter();
+
+  const handleDeleteAnnonce = async () => {
+    try {
+      const success = await handleDelete(item.id);
+      if (success && onRefresh) {
+        // Rafraîchir la page parent après suppression réussie
+        onRefresh();
+      }
+    } catch (error) {
+      console.error("Erreur lors de la suppression:", error);
+    }
+  };
+
   return (
     <View style={styles.container}>
       {/* Image avec indicateur de chargement */}
@@ -75,11 +89,7 @@ export const AnnonceItem = ({ item }: Props) => {
           handleUpdate(item.id);
           router.push("/annonces/CreateAnnonce");
         }}
-        onSupprimer={() => {
-          // Logique de suppression
-          console.log("Supprimer action");
-          handleDelete(item.id);
-        }}
+        onSupprimer={handleDeleteAnnonce}
       />
     </View>
   );

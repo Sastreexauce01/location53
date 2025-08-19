@@ -10,43 +10,44 @@ const useAnnonce_Data = () => {
   const [isLoadingAnnonces, setIsLoadingAnnonces] = useState(false);
   const { user, isAuthenticated } = useAuth();
 
-  const fetchVirtualSpaces = async (annonceId: string): Promise<Image360[]> => {
-    try {
-      const { data, error } = await supabase
-        .from("virtual_spaces")
-        .select("*")
-        .eq("annonce_id", annonceId);
+  const fetchVirtualSpaces = useCallback(
+    async (annonceId: string): Promise<Image360[]> => {
+      try {
+        const { data, error } = await supabase
+          .from("virtual_spaces")
+          .select("*")
+          .eq("annonce_id", annonceId);
 
-      if (error) throw error;
+        if (error) throw error;
 
-      console.log("✅Donne brute virtualSpace de  supabase", data);
+        console.log("✅ Données brutes virtualSpace:", data);
 
-      const images360: Image360[] = data.map((item) => ({
-        id: item.id,
-        panorama: item.panorama,
-        thumbnail: item.thumbnail,
-        name: item.name,
-        caption: item.caption,
-        links: Array.isArray(item.links)
-          ? item.links.map((l: any) => ({
-              nodeId: l.nodeId ?? "",
-              position: {
-                yaw: l.position?.yaw ?? 0,
-                pitch: l.position?.pitch ?? 0,
-              },
-            }))
-          : [],
-      }));
-
-      return images360;
-    } catch (error) {
-      console.error("❌ Erreur virtual spaces:", error);
-      return [];
-    }
-  };
+        return data.map((item) => ({
+          id: item.id,
+          panorama: item.panorama,
+          thumbnail: item.thumbnail,
+          name: item.name,
+          caption: item.caption,
+          links: Array.isArray(item.links)
+            ? item.links.map((l: any) => ({
+                nodeId: l.nodeId ?? "",
+                position: {
+                  yaw: l.position?.yaw ?? 0,
+                  pitch: l.position?.pitch ?? 0,
+                },
+              }))
+            : [],
+        }));
+      } catch (error) {
+        console.error("❌ Erreur virtual spaces:", error);
+        return [];
+      }
+    },
+    []
+  ); // ✅ dépendances vides
 
   // ✅ Fonction simple pour récupérer 10 annonces
-  const fetchdataAll = async () => {
+  const fetchdataAll = useCallback(async () => {
     setIsLoadingAnnonces(true);
     try {
       const { data, error } = await supabase
@@ -94,7 +95,7 @@ const useAnnonce_Data = () => {
     } finally {
       setIsLoadingAnnonces(false);
     }
-  };
+  }, [fetchVirtualSpaces]);
 
   // ✅ Mémoriser fetchData avec useCallback
   const fetchData = useCallback(async () => {
@@ -150,7 +151,7 @@ const useAnnonce_Data = () => {
     } finally {
       setIsLoadingAnnonces(false);
     }
-  }, [isAuthenticated, user?.id]); // ✅ Dépendances correctes
+  }, [fetchVirtualSpaces, isAuthenticated, user?.id]); // ✅ Dépendances correctes
 
   // ✅ Un seul useEffect, bien configuré
   useEffect(() => {
@@ -167,9 +168,23 @@ const useAnnonce_Data = () => {
     }
   };
 
-  const handleDelete = async (idAnnonce: string) => {
+  const handleDelete = async (idAnnonce: string): Promise<boolean> => {
     try {
-      const { data, error } = await supabase
+      setIsLoadingAnnonces(true);
+      
+      // Supprimer d'abord les virtual_spaces liés
+      const { error: virtualSpacesError } = await supabase
+        .from("virtual_spaces")
+        .delete()
+        .eq("annonce_id", idAnnonce);
+
+      if (virtualSpacesError) {
+        console.error("Erreur lors de la suppression des espaces virtuels:", virtualSpacesError);
+        // Continue quand même avec la suppression de l'annonce
+      }
+
+      // Supprimer l'annonce
+      const { error } = await supabase
         .from("annonces")
         .delete()
         .eq("id", idAnnonce);
@@ -180,19 +195,26 @@ const useAnnonce_Data = () => {
         return false;
       }
 
-      console.log("Annonce supprimée avec succès:", data);
+      console.log("Annonce supprimée avec succès");
       alert("Annonce supprimée avec succès!");
 
-      // Rafraîchir la liste
-      await fetchData();
+      // Mettre à jour la liste locale immédiatement
+      setListAppartments(prev => prev.filter(annonce => annonce.id !== idAnnonce));
 
       return true;
     } catch (err) {
       console.error("Erreur inattendue:", err);
       alert("Une erreur inattendue s'est produite");
       return false;
+    } finally {
+      setIsLoadingAnnonces(false);
     }
   };
+
+  // Fonction pour rafraîchir manuellement les données
+  const refreshData = useCallback(async () => {
+    await fetchData();
+  }, [fetchData]);
 
   return {
     fetchdataAll,
@@ -201,6 +223,7 @@ const useAnnonce_Data = () => {
     listAppartments,
     setListAppartments,
     isLoadingAnnonces,
+    refreshData, // Nouvelle fonction exportée
   };
 };
 

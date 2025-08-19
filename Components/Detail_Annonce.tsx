@@ -77,7 +77,10 @@ const Detail_Annonce: React.FC<props> = ({ item }) => {
       </ScrollView>
 
       <View style={styles.container_contact}>
+        {/* Prix */}
         <Text style={styles.prix}>{item.prix} F CFA / mois</Text>
+
+        {/* Boutton  */}
         <TouchableOpacity
           style={styles.button}
           onPress={() =>
@@ -87,7 +90,7 @@ const Detail_Annonce: React.FC<props> = ({ item }) => {
           }
         >
           <Text style={styles.buttonText}>Prendre contact</Text>
-          <AntDesign name="arrowright" size={24} color="white" />
+          <AntDesign name="arrowright" size={20} color="white" />
         </TouchableOpacity>
       </View>
     </View>
@@ -208,9 +211,10 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.primary,
     padding: 8,
     borderRadius: 8,
+    elevation:5,
   },
   buttonText: {
     color: "white",
-    fontSize: 16,
+    fontSize: 14,
   },
 });

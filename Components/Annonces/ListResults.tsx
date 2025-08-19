@@ -24,6 +24,7 @@ const ListResults: React.FC<ListResultsProps> = ({
   queryString,
   Appartement_filtre,
 }) => {
+
   const handleEditSearch = () => {
     router.push("/annonces/SearchScreen");
   };
@@ -80,13 +81,15 @@ const ListResults: React.FC<ListResultsProps> = ({
     item: AnnonceType;
     index: number;
   }) => (
-    <TouchableOpacity
-      style={[styles.itemContainer, { marginTop: index === 0 ? 0 : 16 }]}
-      onPress={() => handleItemPress(item)}
-      activeOpacity={0.95}
-    >
-      <AppartementItem item={item} />
-    </TouchableOpacity>
+    <View style={styles.itemWrapper}>
+      <TouchableOpacity
+        style={[styles.itemContainer, { marginTop: index === 0 ? 0 : 16 }]}
+        onPress={() => handleItemPress(item)}
+        activeOpacity={0.95}
+      >
+        <AppartementItem item={item} />
+      </TouchableOpacity>
+    </View>
   );
 
   const renderEmptyState = () => (
@@ -105,7 +108,7 @@ const ListResults: React.FC<ListResultsProps> = ({
 
   if (Appartement_filtre.length === 0) {
     return (
-      <>
+      <View style={styles.container}>
         {renderHeader()}
         {renderEmptyState()}
         {/* Bouton Map */}
@@ -116,20 +119,21 @@ const ListResults: React.FC<ListResultsProps> = ({
           <Feather name="map" size={18} color="white" />
           <Text style={styles.mapButtonText}>Voir sur la carte</Text>
         </TouchableOpacity>
-      </>
+      </View>
     );
   }
 
   return (
     <View style={styles.container}>
+      {/* Header fixe en haut */}
+      {renderHeader()}
+      
       <FlatList
         data={Appartement_filtre}
-        ListHeaderComponent={renderHeader}
         keyExtractor={(item) => item.id.toString()}
         renderItem={renderItem}
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.listContainer}
-        stickyHeaderIndices={[0]}
         removeClippedSubviews={true}
         maxToRenderPerBatch={10}
         windowSize={10}
@@ -150,15 +154,16 @@ export default ListResults;
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    backgroundColor: 'white'
   },
 
   headerContainer: {
-    backgroundColor: "white",
     paddingHorizontal: 16,
     paddingVertical: 12,
-    
-    // // borderBottomWidth: 1,
-    // borderBottomColor: Colors.light,
+    width: '100%',
+    backgroundColor: 'white',
+    // Assure que le header prend toute la largeur
+    alignSelf: 'stretch',
   },
 
   searchContainer: {
@@ -241,12 +246,22 @@ const styles = StyleSheet.create({
   },
 
   listContainer: {
-    paddingHorizontal: 16,
     paddingBottom: 100,
+    // Centrage des éléments
+    alignItems: 'center',
+  },
+
+  itemWrapper: {
+    // Container pour centrer chaque item
+    width: '100%',
+    alignItems: 'center',
+    paddingHorizontal: 16,
   },
 
   itemContainer: {
-    width: "auto",
+    // L'item lui-même, peut avoir une largeur fixe ou responsive
+    width: '100%',
+    maxWidth: 400, // Optionnel: largeur max pour les grands écrans
   },
 
   emptyContainer: {
