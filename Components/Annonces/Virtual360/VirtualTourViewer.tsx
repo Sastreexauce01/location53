@@ -56,6 +56,7 @@ export const VirtualTourViewer: React.FC<VirtualTourViewerProps> = ({
 
   // Encodage en string URL-safe
   const encodedData = encodeURIComponent(JSON.stringify(annonce.virtualSpace));
+  console.log("✅Donne envoye pour la visite", annonce.virtualSpace);
 
   // URL vers la page Next.js (ici hébergée localement)
   const url = `http://192.168.0.2:3000?data=${encodedData}`;
