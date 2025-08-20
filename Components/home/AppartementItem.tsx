@@ -81,7 +81,7 @@ const AppartementItem = ({ item }: props) => {
           onPress={() =>
             router.push({
               pathname: `/virtual360/[id]`,
-              params: { id: 1},
+              params: { id: item.id},
             })
           }
         >

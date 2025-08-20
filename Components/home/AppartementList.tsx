@@ -8,9 +8,9 @@ import { AnnonceType } from "@/assets/Types/type";
 const AppartementList = () => {
   const [listAppartments, setListAppartments] = useState<AnnonceType[]>([]);
   const [isLoading, setIsLoading] = useState(false);
-
+   
   const router = useRouter();
-  const { fetchdataAll } = useAnnonce_Data();
+  const { fetchdataAll, } = useAnnonce_Data();
 
   useEffect(() => {
     const loadData = async () => {
@@ -29,6 +29,7 @@ const AppartementList = () => {
     loadData();
   }, [fetchdataAll]); // ✅ Ajouter fetchdataAll dans les dépendances
 
+  
   return (
     <FlatList
       data={listAppartments} // ✅ Utiliser listAppartments au lieu de Data_Appartements
@@ -37,14 +38,7 @@ const AppartementList = () => {
       horizontal
       keyExtractor={(item) => item.id.toString()}
       renderItem={({ item }) => (
-        <TouchableOpacity
-          onPress={() =>
-            router.push({
-              pathname: `/virtual360/[id]`,
-              params: { id: item.id },
-            })
-          }
-        >
+        <TouchableOpacity onPress={() => router.push(`/annonces/${item.id}`)}>
           <AppartementItem item={item} />
         </TouchableOpacity>
       )}
