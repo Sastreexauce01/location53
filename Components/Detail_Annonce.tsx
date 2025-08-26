@@ -25,6 +25,9 @@ const Detail_Annonce: React.FC<props> = ({ item }) => {
   const { user } = useAuth();
 
   const router = useRouter();
+
+  console.log("📲Phone",user?.user_metadata?.phone);
+
   return (
     <View style={styles.container}>
       <ScrollView
@@ -72,7 +75,14 @@ const Detail_Annonce: React.FC<props> = ({ item }) => {
             <Text style={styles.description}>{item.description}</Text>
           </View>
 
-          <Text style={styles.date}>Publié le: {item.date_creation}</Text>
+          <Text style={styles.date}>
+            Publié le:{" "}
+            {new Date(item.date_creation).toLocaleDateString("fr-FR", {
+              day: "numeric",
+              month: "long",
+              year: "numeric",
+            })}
+          </Text>
         </View>
       </ScrollView>
 
@@ -85,7 +95,7 @@ const Detail_Annonce: React.FC<props> = ({ item }) => {
           style={styles.button}
           onPress={() =>
             Linking.openURL(
-              `https://wa.me/${user?.phone}?text=Bonjour, je suis intéressé(e) par votre annonce concernant le bien ${item.nomAnnonce} .`
+              `https://wa.me/${user?.user_metadata?.phone}?text=Bonjour, je suis intéressé(e) par votre annonce concernant le bien ${item.nomAnnonce} .`
             )
           }
         >
@@ -211,7 +221,7 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.primary,
     padding: 8,
     borderRadius: 8,
-    elevation:5,
+    elevation: 5,
   },
   buttonText: {
     color: "white",

@@ -16,8 +16,7 @@ import { supabase } from "@/utils/supabase";
 // Correction du chemin
 import { SafeAreaView } from "react-native-safe-area-context";
 import useAuth from "@/assets/hooks/useAuth";
-
-
+import NotAuthenticated from "@/Components/NotAuthenticated";
 
 export default function Profile() {
   const { user, loading, isAuthenticated } = useAuth();
@@ -35,7 +34,7 @@ export default function Profile() {
 
   // Si pas authentifié, ne rien afficher (redirection en cours)
   if (!isAuthenticated || !user) {
-    return null;
+    return <NotAuthenticated />;
   }
 
   // Utiliser les vraies données de l'utilisateur connecté
@@ -83,16 +82,6 @@ export default function Profile() {
 
   const handleMenuItemPress = (item: any) => {
     console.log(`Pressed: ${item.title}`);
-    // Ajouter la navigation selon l'item
-    // switch(item.id) {
-    //   case 'notifications':
-    //     router.push('/settings/notifications');
-    //     break;
-    //   case 'privacy':
-    //     router.push('/settings/privacy');
-    //     break;
-    //   // etc...
-    // }
   };
 
   return (

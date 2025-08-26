@@ -18,7 +18,6 @@ import Loading from "@/Components/Loading";
 
 export default function Index() {
   const { isLoadingAnnonces } = useAnnonce_Data();
-
   const router = useRouter();
 
   if (isLoadingAnnonces) return <Loading />;
@@ -38,8 +37,7 @@ export default function Index() {
           <Pressable
             style={styles.container_input}
             onPress={() => router.push("/(tabs)/recherche")}
-            // recherche
-            // Précharge la page Screen/annonces/SearchScreen
+           
           >
             <EvilIcons name="location" size={24} color={Colors.dark} />
             <View style={styles.input}>
@@ -55,7 +53,10 @@ export default function Index() {
             <AppartementList />
             <View>
               <TouchableOpacity
-                onPress={() => router.push("/(tabs)/recherche")}
+                onPress={() =>
+                  //  router.push("/(tabs)/recherche")
+                  router.push("/dashboard")
+                }
               >
                 <Text style={styles.viewAll}> Voir toutes les propriétés</Text>
               </TouchableOpacity>

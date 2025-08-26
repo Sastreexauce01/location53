@@ -3,36 +3,51 @@ import {
   Text,
   StyleSheet,
   Pressable,
-  ActivityIndicator,
 } from "react-native";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { AnnonceType } from "@/assets/Types/type";
 import Detail_Annonce from "@/Components/Detail_Annonce";
 import { Fontisto } from "@expo/vector-icons";
 import { Colors } from "@/Components/Colors";
+
+import { useEffect, useState } from "react";
 import useAnnonce_Data from "@/assets/hooks/useAnnonce_Data";
+import Loading from "@/Components/Loading";
 
 export default function Page_Detail() {
   const { id } = useLocalSearchParams();
   const router = useRouter();
-  const { listAppartments, isLoadingAnnonces } = useAnnonce_Data();
+  const [isLoading, setIsLoading] = useState(false);
+  const [listAppartments, setListAppartments] = useState<AnnonceType[]>([]);
+  const { fetchdataAll } = useAnnonce_Data();
+  useEffect(() => {
+    const loadData = async () => {
+      setIsLoading(true);
+      try {
+        const data = await fetchdataAll();
+        setListAppartments(data || []); // ✅ Gérer le cas où data est undefined
+      } catch (error) {
+        console.error("❌ Erreur lors du chargement:", error);
+        setListAppartments([]);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    loadData();
+  }, [fetchdataAll]); // ✅ Ajouter fetchdataAll dans les dépendances
 
   const Annonce_query: AnnonceType | undefined = listAppartments.find(
     (annonce) => annonce.id === id
   );
 
   // Écran de chargement pour les annonces
-  if (isLoadingAnnonces) {
-    return (
-      <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color={Colors.primary} />
-        <Text style={styles.loadingText}>Chargement ...</Text>
-      </View>
-    );
+  if (isLoading) {
+    return <Loading />;
   }
 
   // console.log(Annonce_query);  // Vérifiez la structure de l'objet récupéré
-  
+
   if (!Annonce_query) {
     return (
       <View style={styles.container}>

@@ -27,6 +27,7 @@ import { useAnnonce } from "@/assets/hooks/useAnnonce";
 import { supabase } from "@/utils/supabase";
 
 import { uploadImage } from "@/assets/hooks/useNumerisation";
+import useAnnonce_Data from "@/assets/hooks/useAnnonce_Data";
 
 const CreateAnnonce = () => {
   const [step, setStep] = useState<number>(1);
@@ -36,7 +37,7 @@ const CreateAnnonce = () => {
   const router = useRouter();
   const { user, loading, isAuthenticated } = useAuth();
   const { annonce, resetAnnonce } = useAnnonce();
-
+  const { refreshData } = useAnnonce_Data();
   // Écran de chargement
   if (loading) {
     return (
@@ -52,8 +53,6 @@ const CreateAnnonce = () => {
     return null;
   }
 
-
- 
   // ========================================
   // 📝 FONCTION HANDLESUBMIT AVEC SUPABASE
   // ========================================
@@ -113,8 +112,6 @@ const CreateAnnonce = () => {
 
       console.log("✅ Annonce créée avec ID:", nouvelleAnnonce.id);
 
-      
-
       // 4. Upload et création des espaces virtuels (images 360°)
       if (annonce.virtualSpace && annonce.virtualSpace.length > 0) {
         console.log(
@@ -128,7 +125,7 @@ const CreateAnnonce = () => {
             const { error: virtualError } = await supabase
               .from("virtual_spaces")
               .insert({
-                id:virtualSpace.id,
+                id: virtualSpace.id,
                 annonce_id: nouvelleAnnonce.id,
                 name: virtualSpace.name,
                 panorama: virtualSpace.panorama, // URL déjà sur Supabase
@@ -152,6 +149,8 @@ const CreateAnnonce = () => {
       // Afficher l'animation de succès
       setModalVisible(true);
 
+      await refreshData();
+
       // Programmer la redirection après l'animation
       setTimeout(() => {
         resetAnnonce();
@@ -165,6 +164,7 @@ const CreateAnnonce = () => {
       );
     } finally {
       setIsSubmitting(false);
+
       resetAnnonce();
     }
   };

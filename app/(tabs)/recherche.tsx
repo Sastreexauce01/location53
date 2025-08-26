@@ -9,8 +9,6 @@ const Recherche = () => {
   return (
     <SafeAreaView style={{ flex: 1 }}>
       <View style={styles.container}>
-     
-
         {/* Composant de recherche */}
         <Search searchQuery={searchQuery} setSearchQuery={setSearchQuery} />
       </View>

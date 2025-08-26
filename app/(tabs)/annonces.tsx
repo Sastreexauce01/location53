@@ -13,12 +13,15 @@ import { FontAwesome6 } from "@expo/vector-icons";
 import useAuth from "@/assets/hooks/useAuth";
 import useAnnonce_Data from "@/assets/hooks/useAnnonce_Data";
 import Loading from "@/Components/Loading";
+import NotAuthenticated from "@/Components/NotAuthenticated";
 
 export default function Annonces() {
   const router = useRouter();
   const { user, loading, isAuthenticated } = useAuth();
   const { listAppartments, isLoadingAnnonces } = useAnnonce_Data();
 
+
+  
   // Écran de chargement pour l'authentification
   if (loading) {
     return <Loading />;
@@ -26,7 +29,7 @@ export default function Annonces() {
 
   // Si pas authentifié, ne rien afficher
   if (!isAuthenticated || !user) {
-    return null;
+    return <NotAuthenticated/>;
   }
 
   // Écran de chargement pour les annonces
@@ -63,6 +66,7 @@ export default function Annonces() {
             ))
           )}
         </View>
+        
       </ScrollView>
 
       {/* Button */}

@@ -21,12 +21,13 @@ const useAuth = (): AuthState => {
     // Écouter les changements d'authentification
     const {
       data: { subscription },
+
     } = supabase.auth.onAuthStateChange(async (event, session) => {
       console.log("Auth event:", event, session?.user?.email);
 
       if (event === "SIGNED_OUT" || !session?.user) {
         setUser(null);
-        router.push("/connexion");
+        // router.push("/connexion");
       } else if (session?.user) {
         // Vérifier si l'email est confirmé
         if (!session.user.email_confirmed_at) {
@@ -62,14 +63,14 @@ const useAuth = (): AuthState => {
 
       if (error) {
         console.error("Erreur lors de la vérification de session:", error);
-        router.push("/connexion");
+        // router.push("/connexion");
         setLoading(false);
         return;
       }
 
       if (!session?.user) {
         console.log("Aucune session trouvée, redirection vers connexion");
-        router.push("/connexion");
+        // router.push("/connexion");
         setLoading(false);
         return;
       }
@@ -90,11 +91,15 @@ const useAuth = (): AuthState => {
       }
 
       console.log("Session valide pour:", session.user.email);
+      // console.log("🤼🤼user",session.user);
+
+
+      
       setUser(session.user);
       setLoading(false);
     } catch (error) {
       console.error("Erreur lors de la vérification auth:", error);
-      router.push("/connexion");
+      // router.push("/connexion");
       setLoading(false);
     }
   };

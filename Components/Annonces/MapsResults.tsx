@@ -131,7 +131,7 @@ const MapsResults: React.FC<MapsResultsProps> = ({
                 {property.adresse}
               </Text>
               <Text style={styles.calloutPrice}>
-                {property.prix}€{" "}
+                {property.prix}f{" "}
                 {property.typeAnnonce === "location" ? "/mois" : ""}
               </Text>
               <View style={styles.propertyFeatures}>
@@ -220,7 +220,7 @@ const MapsResults: React.FC<MapsResultsProps> = ({
                 {selectedProperty.adresse}
               </Text>
               <Text style={styles.cardPrice}>
-                {selectedProperty.prix}€
+                {selectedProperty.prix}f
                 {selectedProperty.typeAnnonce === "location" ? " /mois" : ""}
               </Text>
               <View style={styles.cardFeatures}>

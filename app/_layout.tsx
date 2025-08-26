@@ -12,13 +12,11 @@ export default function RootLayout() {
       <Stack.Screen name="+not-found" />
       <Stack.Screen name="annonces/[id]" />
       <Stack.Screen name="virtual360/[id]" />
- 
 
-   
       <Stack.Screen name="annonces/CreateAnnonce" />
 
       <Stack.Screen name="connexion/index" options={{ title: "Connexion" }} />
-      
+
       <Stack.Screen
         name="inscription/index"
         options={{ title: "Inscription" }}
@@ -27,9 +25,9 @@ export default function RootLayout() {
         name="inscription/verification-email"
         options={{ title: "verification-email" }}
       />
-      
 
-      
+      <Stack.Screen name="dashboard/index" options={{ title: "Admin" }} />
+
       <Stack.Screen
         name="connexion/MotsPasseOublie"
         options={{ title: "Mot de passe oublié" }}

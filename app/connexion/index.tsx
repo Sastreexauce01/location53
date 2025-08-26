@@ -32,6 +32,36 @@ const Login = () => {
     return emailRegex.test(email);
   };
 
+  // ✅ FONCTION CORRIGÉE
+  const isAdmin = async (userId: string): Promise<boolean> => {
+    try {
+      const { data, error } = await supabase
+        .from("user_roles")
+        .select("*")
+        .eq("id", userId)       // ✅ Utiliser id (clé primaire Auth)
+        .eq("role", "admin");   // ✅ Vérifier explicitement le rôle admin
+
+      if (error) {
+        console.error("❌ Erreur lors de la vérification admin:", error);
+        return false; // ✅ Retourner false en cas d'erreur
+      }
+
+      console.log("✅ Données admin récupérées:", data);
+      
+      // ✅ Retourner true si on trouve au moins un enregistrement admin
+      return data && data.length > 0;
+      
+    } catch (error) {
+      console.error("❌ Erreur dans isAdmin:", error);
+      return false; // ✅ Retourner false en cas d'exception
+    }
+  };
+
+
+  //  Mettre a jour le user rolees
+
+  
+
   const handleEmailLogin = async () => {
     // Validation des champs
     if (!email || !password) {
@@ -45,7 +75,10 @@ const Login = () => {
     }
 
     if (password.length < 6) {
-      Alert.alert("Erreur", "Le mot de passe doit contenir au moins 6 caractères");
+      Alert.alert(
+        "Erreur",
+        "Le mot de passe doit contenir au moins 6 caractères"
+      );
       return;
     }
 
@@ -72,29 +105,39 @@ const Login = () => {
             [
               {
                 text: "OK",
-                onPress: () => router.push({
-                  pathname: "/inscription/verification-email",
-                  params: { 
-                    email: data.user.email,
-                    fromLogin: "true"
-                  }
-                }),
+                onPress: () =>
+                  router.push({
+                    pathname: "/inscription/verification-email",
+                    params: {
+                      email: data.user.email,
+                      fromLogin: "true",
+                    },
+                  }),
               },
             ]
           );
           return;
         }
 
-        // Si tout est OK, rediriger vers l'app
-        Alert.alert("Connexion réussie", "Bienvenue !", [
-          {
-            text: "OK",
-            onPress: () => router.push("/(tabs)"),
-          },
-        ]);
+        // ✅ LOGIQUE CORRIGÉE pour la redirection
+        console.log("✅ Utilisateur connecté:", data.user.id);
+        
+        // Vérifier si l'utilisateur est admin
+        const userIsAdmin = await isAdmin(data.user.id);
+        
+        console.log("✅ Est admin:", userIsAdmin);
+        
+        // Redirection selon le statut
+        if (userIsAdmin) {
+          console.log("🔑 Redirection vers dashboard admin");
+          router.push("/dashboard");
+        } else {
+          console.log("👤 Redirection vers tabs utilisateur");
+          router.push("/(tabs)");
+        }
       }
     } catch (error: any) {
-      console.error("Erreur lors de la connexion:", error);
+      console.error("❌ Erreur lors de la connexion:", error);
       Alert.alert("Erreur", "Une erreur inattendue s'est produite");
     } finally {
       setIsLoading(false);
@@ -123,10 +166,12 @@ const Login = () => {
           {/* Formulaire */}
           <View style={styles.form}>
             {/* Email Input */}
-            <View style={[
-              styles.inputContainer,
-              email && !validateEmail(email) && styles.inputError,
-            ]}>
+            <View
+              style={[
+                styles.inputContainer,
+                email && !validateEmail(email) && styles.inputError,
+              ]}
+            >
               <MaterialIcons name="email" size={18} color={Colors.primary} />
               <TextInput
                 style={styles.input}
@@ -138,19 +183,17 @@ const Login = () => {
                 placeholderTextColor={Colors.gray}
               />
               {email && validateEmail(email) && (
-                <MaterialIcons
-                  name="check-circle"
-                  size={18}
-                  color="#4CAF50"
-                />
+                <MaterialIcons name="check-circle" size={18} color="#4CAF50" />
               )}
             </View>
 
             {/* Password Input */}
-            <View style={[
-              styles.inputContainer,
-              password && password.length < 6 && styles.inputError,
-            ]}>
+            <View
+              style={[
+                styles.inputContainer,
+                password && password.length < 6 && styles.inputError,
+              ]}
+            >
               <MaterialIcons name="lock" size={18} color={Colors.primary} />
               <TextInput
                 style={styles.input}
@@ -181,11 +224,22 @@ const Login = () => {
             {/* Bouton Connexion */}
             <Pressable
               style={[
-                styles.button, 
-                (isLoading || !email || !password || !validateEmail(email) || password.length < 6) && styles.buttonDisabled
+                styles.button,
+                (isLoading ||
+                  !email ||
+                  !password ||
+                  !validateEmail(email) ||
+                  password.length < 6) &&
+                  styles.buttonDisabled,
               ]}
               onPress={handleEmailLogin}
-              disabled={isLoading || !email || !password || !validateEmail(email) || password.length < 6}
+              disabled={
+                isLoading ||
+                !email ||
+                !password ||
+                !validateEmail(email) ||
+                password.length < 6
+              }
             >
               {isLoading ? (
                 <View style={styles.loadingContainer}>
@@ -253,7 +307,7 @@ const styles = StyleSheet.create({
 
   form: {
     backgroundColor: "white",
-    marginHorizontal: 20,
+    marginHorizontal: 10,
     borderRadius: 16,
     paddingVertical: 24,
     paddingHorizontal: 20,
@@ -275,7 +329,7 @@ const styles = StyleSheet.create({
     borderColor: "#E5E7EB",
     borderRadius: 12,
     paddingHorizontal: 12,
-    paddingVertical: 12,
+    paddingVertical: 6,
     marginBottom: 16,
     gap: 10,
     backgroundColor: "#FAFBFC",

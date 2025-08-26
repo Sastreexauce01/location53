@@ -37,7 +37,7 @@ const ListResults: React.FC<ListResultsProps> = ({
   const renderHeader = () => (
     <View style={styles.headerContainer}>
       {/* Barre de recherche modifiable */}
-      <Pressable style={styles.searchContainer} onPress={handleEditSearch}>
+      {/* <Pressable style={styles.searchContainer} onPress={handleEditSearch}>
         <View style={styles.searchContent}>
           <MaterialIcons name="search" size={20} color={Colors.gray} />
           <Text style={styles.searchText} numberOfLines={1}>
@@ -45,7 +45,7 @@ const ListResults: React.FC<ListResultsProps> = ({
           </Text>
         </View>
         <MaterialIcons name="edit" size={18} color={Colors.primary} />
-      </Pressable>
+      </Pressable> */}
 
       {/* Statistiques des résultats */}
       <View style={styles.statsContainer}>

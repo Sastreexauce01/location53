@@ -143,7 +143,7 @@ const SearchResults = () => {
               style={styles.backButton}
               hitSlop={8}
             >
-              <Fontisto name="angle-left" size={18} color={Colors.primary} />
+              <Fontisto name="angle-left" size={16} color={Colors.primary} />
             </Pressable>
 
             <View style={styles.titleSection}>
@@ -262,9 +262,9 @@ const styles = StyleSheet.create({
   },
 
   backButton: {
-    padding: 8,
-    borderRadius: 8,
-    backgroundColor: Colors.light,
+    padding: 6,
+    borderRadius: 6,
+   
   },
 
   titleSection: {

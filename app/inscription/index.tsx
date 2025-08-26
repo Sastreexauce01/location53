@@ -11,13 +11,13 @@ import {
   Platform,
   ScrollView,
   ActivityIndicator,
-
 } from "react-native";
 import { Colors } from "@/Components/Colors";
 import { useRouter } from "expo-router";
 import { MaterialIcons } from "@expo/vector-icons";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { supabase } from "@/utils/supabase";
+import { Image } from "expo-image";
 
 // Types pour les données du formulaire
 interface FormData {
@@ -41,7 +41,8 @@ const Inscription: React.FC = () => {
   });
 
   const [showPassword, setShowPassword] = useState<boolean>(false);
-  const [showConfirmPassword, setShowConfirmPassword] = useState<boolean>(false);
+  const [showConfirmPassword, setShowConfirmPassword] =
+    useState<boolean>(false);
 
   // Validation email
   const validateEmail = (email: string): boolean => {
@@ -76,7 +77,37 @@ const Inscription: React.FC = () => {
     );
   };
 
-  // Fonction d'inscription avec Supabase
+  // ✅ FONCTION CORRIGÉE selon votre schéma user_roles
+  const insertUser = async (authData: any) => {
+    try {
+      if (!authData?.user?.id) {
+        console.error("❌ Pas d'ID utilisateur dans authData");
+        return;
+      }
+
+      // Utiliser update car l'utilisateur pourrait déjà exister via trigger
+      const { data, error } = await supabase
+        .from("user_roles")
+        .update({
+          id: authData.user.id, // FK vers auth.users
+          email: authData.user.email, // Email depuis Auth
+          phone: authData.user.user_metadata?.phone || formData.phone,
+        })
+        .eq("id", authData.user.id);
+
+      if (error) {
+        console.error("❌ Erreur lors de l'upsert user_roles:", error);
+
+        return;
+      }
+
+      console.log("✅ Utilisateur synchronisé dans user_roles:", data);
+    } catch (error) {
+      console.error("❌ Exception dans insertUser:", error);
+    }
+  };
+
+  // ✅ FONCTION SIGNUP AMÉLIORÉE
   const handleSignup = async (): Promise<void> => {
     if (!isFormValid()) {
       Alert.alert("Erreur", "Veuillez remplir tous les champs correctement");
@@ -86,37 +117,41 @@ const Inscription: React.FC = () => {
     setLoading(true);
     try {
       const { data, error } = await supabase.auth.signUp({
-        email: formData.email,
+        email: formData.email.trim().toLowerCase(), // ✅ Nettoyer l'email
         password: formData.password,
         options: {
           data: {
             phone: formData.phone,
+            // Ajouter d'autres métadonnées si nécessaire
+            full_name: "", // À ajouter si vous avez un champ nom
           },
         },
       });
 
-      console.log("data", data);
-      console.log("error", error);
+      console.log("✅ Réponse auth.signUp:", { data, error });
 
       if (error) {
         Alert.alert("Erreur", error.message);
         return;
       }
 
-      // Toujours rediriger vers la page de vérification
-      // L'utilisateur DOIT confirmer son email avant d'être connecté
+      // ✅ Ajouter l'utilisateur à user_roles APRÈS création Auth réussie
       if (data.user) {
+        await insertUser(data);
+        // ✅ Redirection vers vérification email
         router.push({
           pathname: "/inscription/verification-email",
-          params: { 
+          params: {
             email: formData.email,
             phone: formData.phone,
-            fromSignup: "true"
-          }
+            fromSignup: "true",
+          },
         });
+      } else {
+        Alert.alert("Erreur", "Impossible de créer le compte");
       }
     } catch (error: any) {
-      console.error("Erreur lors de l'inscription:", error);
+      console.error("❌ Erreur lors de l'inscription:", error);
       Alert.alert("Erreur", "Une erreur inattendue s'est produite");
     } finally {
       setLoading(false);
@@ -133,15 +168,19 @@ const Inscription: React.FC = () => {
           showsVerticalScrollIndicator={false}
           contentContainerStyle={styles.scrollContent}
         >
-          {/* Header simplifié */}
+          {/* Header */}
           <View style={styles.header}>
-            <TouchableOpacity 
-              style={styles.backButton}
-              onPress={() => router.back()}
-            >
-              <MaterialIcons name="arrow-back" size={24} color={Colors.dark} />
-            </TouchableOpacity>
-            <Text style={styles.headerTitle}>Inscription</Text>
+            <Image
+              source={{
+                uri: "https://res.cloudinary.com/dait4sfc5/image/upload/v1741799422/Banniere_login_ij56s0.png",
+              }}
+              style={styles.image}
+            />
+            <Text style={styles.title}>S&apos;inscrire</Text>
+            <Text style={styles.welcomeText}>
+              Rejoignez notre communauté et découvrez toutes nos fonctionnalités
+              !
+            </Text>
           </View>
 
           {/* Formulaire */}
@@ -149,12 +188,13 @@ const Inscription: React.FC = () => {
             {/* Image et texte d'accueil */}
             <View style={styles.welcomeSection}>
               <View style={styles.imageContainer}>
-                <MaterialIcons name="person-add" size={60} color={Colors.primary} />
+                <MaterialIcons
+                  name="person-add"
+                  size={32}
+                  color={Colors.primary}
+                />
               </View>
               <Text style={styles.welcomeTitle}>Créer votre compte</Text>
-              <Text style={styles.welcomeText}>
-                Rejoignez notre communauté et découvrez toutes nos fonctionnalités
-              </Text>
             </View>
 
             {/* Champs du formulaire */}
@@ -170,7 +210,11 @@ const Inscription: React.FC = () => {
                       styles.inputError,
                   ]}
                 >
-                  <MaterialIcons name="email" size={18} color={Colors.primary} />
+                  <MaterialIcons
+                    name="email"
+                    size={18}
+                    color={Colors.primary}
+                  />
                   <TextInput
                     style={styles.input}
                     placeholder="votre@email.com"
@@ -203,7 +247,11 @@ const Inscription: React.FC = () => {
                       styles.inputError,
                   ]}
                 >
-                  <MaterialIcons name="phone" size={18} color={Colors.primary} />
+                  <MaterialIcons
+                    name="phone"
+                    size={18}
+                    color={Colors.primary}
+                  />
                   <TextInput
                     style={styles.input}
                     placeholder="+229 XX XX XX XX"
@@ -288,17 +336,20 @@ const Inscription: React.FC = () => {
                     onPress={() => setShowConfirmPassword(!showConfirmPassword)}
                   >
                     <MaterialIcons
-                      name={showConfirmPassword ? "visibility-off" : "visibility"}
+                      name={
+                        showConfirmPassword ? "visibility-off" : "visibility"
+                      }
                       size={18}
                       color={Colors.gray}
                     />
                   </TouchableOpacity>
                 </View>
-                {formData.confirmPassword && formData.password !== formData.confirmPassword && (
-                  <Text style={styles.errorText}>
-                    Les mots de passe ne correspondent pas
-                  </Text>
-                )}
+                {formData.confirmPassword &&
+                  formData.password !== formData.confirmPassword && (
+                    <Text style={styles.errorText}>
+                      Les mots de passe ne correspondent pas
+                    </Text>
+                  )}
               </View>
             </View>
 
@@ -343,6 +394,7 @@ const Inscription: React.FC = () => {
 
 export default Inscription;
 
+// Styles identiques à l'original
 const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -359,7 +411,7 @@ const styles = StyleSheet.create({
   },
 
   header: {
-    flexDirection: "row",
+    flexDirection: "column",
     alignItems: "center",
     paddingHorizontal: 20,
     paddingVertical: 15,
@@ -379,11 +431,11 @@ const styles = StyleSheet.create({
 
   form: {
     backgroundColor: "white",
-    marginHorizontal: 20,
+    marginHorizontal: 10,
     marginTop: 10,
     borderRadius: 16,
     paddingVertical: 24,
-    paddingHorizontal: 20,
+    paddingHorizontal: 10,
     shadowColor: "#000",
     shadowOffset: {
       width: 0,
@@ -400,8 +452,8 @@ const styles = StyleSheet.create({
   },
 
   imageContainer: {
-    width: 100,
-    height: 100,
+    width: 56,
+    height: 42,
     borderRadius: 50,
     backgroundColor: `${Colors.primary}10`,
     justifyContent: "center",
@@ -410,7 +462,7 @@ const styles = StyleSheet.create({
   },
 
   welcomeTitle: {
-    fontSize: 22,
+    fontSize: 16,
     fontWeight: "bold",
     color: Colors.dark,
     marginBottom: 8,
@@ -447,7 +499,7 @@ const styles = StyleSheet.create({
     borderColor: "#E5E7EB",
     borderRadius: 12,
     paddingHorizontal: 12,
-    paddingVertical: 12,
+    paddingVertical: 6,
     backgroundColor: "#FAFBFC",
     gap: 10,
   },
@@ -533,5 +585,25 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: Colors.primary,
     fontWeight: "600",
+  },
+
+  image: {
+    height: 150,
+    width: "100%",
+  },
+
+  title: {
+    fontSize: 28,
+    fontWeight: "bold",
+    color: Colors.dark,
+    marginTop: 20,
+    marginBottom: 8,
+  },
+
+  subtitle: {
+    fontSize: 16,
+    color: Colors.gray,
+    textAlign: "center",
+    paddingBottom: 20,
   },
 });
