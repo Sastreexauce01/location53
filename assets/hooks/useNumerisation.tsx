@@ -16,8 +16,7 @@ export const uploadImage = async (imgUri: string): Promise<string> => {
       // Extraire l'extension et créer un nom unique
       const fileExt = imgUri.split(".").pop()?.toLowerCase() || "jpg";
       const fileName = `${Date.now()}-${Math.random()
-        .toString(36)
-        .substr(2, 9)}.${fileExt}`;
+        .toString(36)}.${fileExt}`;
 
       // Lire le fichier local en base64
       const base64 = await FileSystem.readAsStringAsync(imgUri, {

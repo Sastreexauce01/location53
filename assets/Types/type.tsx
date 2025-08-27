@@ -2,6 +2,7 @@ export type AnnonceType = {
   id: string;
   nomAnnonce: string;
   typeAnnonce: string;
+  status:string,
   categorie: string;
   description: string;
   image: string[]; // images standard
@@ -40,6 +41,7 @@ export interface SupabaseAnnonce {
   nom_annonce: string;
   type_annonce: string;
   categorie: string;
+  status:string;
   description: string;
   images: string[];
   adresse: string;

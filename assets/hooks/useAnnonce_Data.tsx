@@ -71,6 +71,7 @@ const useAnnonce_Data = () => {
             nomAnnonce: item.nom_annonce,
             typeAnnonce: item.type_annonce,
             categorie: item.categorie,
+            status:item.status,
             description: item.description,
             image: item.images || [],
             adresse: item.adresse,
@@ -129,6 +130,7 @@ const useAnnonce_Data = () => {
             typeAnnonce: item.type_annonce,
             categorie: item.categorie,
             description: item.description,
+            status:item.status,
             image: item.images || [],
             adresse: item.adresse,
             coordonnee: {

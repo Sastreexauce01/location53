@@ -45,6 +45,7 @@ export const useAnnonce = () => {
         typeAnnonce: "",
         categorie: "",
         description: "",
+        status:'',
         image: [],
         adresse: "",
         coordonnee: { latitude: 6.3573, longitude: 2.4194 },
