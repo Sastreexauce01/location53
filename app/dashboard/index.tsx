@@ -101,6 +101,8 @@ const PageAdmin = () => {
         return "#4CAF50"; // Vert
       case "rejected":
         return "#F44336"; // Rouge
+      case "suspended":
+        return "#FF9800"; // Orange pour bloqué
       case "pending":
       default:
         return "#FF9800"; // Orange
@@ -108,15 +110,30 @@ const PageAdmin = () => {
   };
 
   // Fonction pour obtenir le texte du badge selon le statut
-  const getBadgeText = (status: string) => {
-    switch (status) {
-      case "approved":
-        return "Approuvée";
-      case "rejected":
-        return "Rejetée";
-      case "pending":
-      default:
-        return "En attente";
+  const getBadgeText = (status: string, isAgent: boolean = false) => {
+    if (isAgent) {
+      switch (status) {
+        case "approved":
+          return "Actif";
+        case "rejected":
+          return "Rejeté";
+        case "suspended":
+          return "Bloqué";
+        case "pending":
+        default:
+          return "En attente";
+      }
+    } else {
+      // Pour les annonces
+      switch (status) {
+        case "approved":
+          return "Approuvée";
+        case "rejected":
+          return "Rejetée";
+        case "pending":
+        default:
+          return "En attente";
+      }
     }
   };
 
@@ -130,15 +147,22 @@ const PageAdmin = () => {
       console.log(`${action} annonce:`, item.id);
 
       // Exemple d'appel API
-      // const { error } = await supabase
-      //   .from("annonces")
-      //   .update({ status: action === "approve" ? "approved" : "rejected" })
-      //   .eq("id", item.id);
+      const { error } = await supabase
+        .from("annonces")
+        .update({ status: action === "approve" ? "approved" : "rejected" })
+        .eq("id", item.id);
+
+      if (error) {
+        console.error(error);
+      }
+
+      setListAppartments((await fetchdataAll()) || []);
 
       Alert.alert(
         "Succès",
         `Annonce ${action === "approve" ? "approuvée" : "rejetée"} avec succès`
       );
+
       setModalVisible(false);
     } catch (error) {
       console.error("Erreur:", error);
@@ -146,25 +170,32 @@ const PageAdmin = () => {
     }
   };
 
-  // Fonction pour gérer les actions sur les agents
+  // Fonction pour gérer les actions sur les agents (bloquer/activer)
   const handleAgentAction = async (
-    action: "block" | "ban",
+    action: "block" | "activate",
     item: AgentType
   ) => {
     try {
-      // Logique pour bloquer/bannir l'agent
       console.log(`${action} agent:`, item.id);
 
-      // Exemple d'appel API
-      // const { error } = await supabase
-      //   .from("user_roles")
-      //   .update({ status: action === "block" ? "suspended" : "banned" })
-      //   .eq("id", item.id);
+      const newStatus = action === "block" ? "suspended" : "approved";
+      const successMessage = action === "block" 
+        ? "Agent bloqué avec succès" 
+        : "Agent activé avec succès";
 
-      Alert.alert(
-        "Succès",
-        `Agent ${action === "block" ? "bloqué" : "banni"} avec succès`
-      );
+      // Appel API
+      const { error } = await supabase
+        .from("user_roles")
+        .update({ status: newStatus })
+        .eq("id", item.id);
+
+      if (error) {
+        console.error(error);
+      }
+
+      await fetchAgents();
+
+      Alert.alert("Succès", successMessage);
       setModalVisible(false);
     } catch (error) {
       console.error("Erreur:", error);
@@ -206,7 +237,7 @@ const PageAdmin = () => {
                 ]}
               >
                 <Text style={styles.statusText}>
-                  {getBadgeText(item.status)}
+                  {getBadgeText(item.status, false)}
                 </Text>
               </View>
 
@@ -279,7 +310,7 @@ const PageAdmin = () => {
                       ]}
                     >
                       <Text style={styles.agentStatusText}>
-                        {getBadgeText(agent.status)}
+                        {getBadgeText(agent.status, true)}
                       </Text>
                     </View>
                   </View>
@@ -381,42 +412,47 @@ const PageAdmin = () => {
                 </>
               ) : (
                 <>
-                  {/* Actions pour les agents */}
-                  <TouchableOpacity
-                    style={[styles.actionButton, styles.blockButton]}
-                    onPress={() =>
-                      selectedItem &&
-                      handleAgentAction("block", selectedItem as AgentType)
-                    }
-                  >
-                    <View style={styles.actionIcon}>
-                      <MaterialIcons name="block" size={18} color="#FF9800" />
-                    </View>
-                    <View style={styles.actionTextContainer}>
-                      <Text style={styles.actionTitle}>Bloquer</Text>
-                      <Text style={styles.actionDescription}>
-                        Suspendre temporairement cet agent
-                      </Text>
-                    </View>
-                  </TouchableOpacity>
-
-                  <TouchableOpacity
-                    style={[styles.actionButton, styles.banButton]}
-                    onPress={() =>
-                      selectedItem &&
-                      handleAgentAction("ban", selectedItem as AgentType)
-                    }
-                  >
-                    <View style={styles.actionIcon}>
-                      <FontAwesome6 name="ban" size={18} color="#F44336" />
-                    </View>
-                    <View style={styles.actionTextContainer}>
-                      <Text style={styles.actionTitle}>Bannir</Text>
-                      <Text style={styles.actionDescription}>
-                        Bannir définitivement cet agent
-                      </Text>
-                    </View>
-                  </TouchableOpacity>
+                  {/* Actions pour les agents - Bloquer ou Activer selon le statut */}
+                  {selectedItem && 
+                   (selectedItem as AgentType).status === "suspended" ? (
+                    // Si l'agent est bloqué, afficher "Activer"
+                    <TouchableOpacity
+                      style={[styles.actionButton, styles.activateButton]}
+                      onPress={() =>
+                        selectedItem &&
+                        handleAgentAction("activate", selectedItem as AgentType)
+                      }
+                    >
+                      <View style={styles.actionIcon}>
+                        <FontAwesome6 name="check" size={18} color="#4CAF50" />
+                      </View>
+                      <View style={styles.actionTextContainer}>
+                        <Text style={styles.actionTitle}>Activer</Text>
+                        <Text style={styles.actionDescription}>
+                          Réactiver le compte de cet agent
+                        </Text>
+                      </View>
+                    </TouchableOpacity>
+                  ) : (
+                    // Sinon, afficher "Bloquer"
+                    <TouchableOpacity
+                      style={[styles.actionButton, styles.blockButton]}
+                      onPress={() =>
+                        selectedItem &&
+                        handleAgentAction("block", selectedItem as AgentType)
+                      }
+                    >
+                      <View style={styles.actionIcon}>
+                        <MaterialIcons name="block" size={18} color="#FF9800" />
+                      </View>
+                      <View style={styles.actionTextContainer}>
+                        <Text style={styles.actionTitle}>Bloquer</Text>
+                        <Text style={styles.actionDescription}>
+                          Suspendre cet agent
+                        </Text>
+                      </View>
+                    </TouchableOpacity>
+                  )}
                 </>
               )}
             </View>
@@ -790,12 +826,12 @@ const styles = StyleSheet.create({
     borderColor: "#F44336",
     backgroundColor: "#fef1f0",
   },
+  activateButton: {
+    borderColor: "#4CAF50",
+    backgroundColor: "#f1f8e9",
+  },
   blockButton: {
     borderColor: "#FF9800",
     backgroundColor: "#fff8e1",
-  },
-  banButton: {
-    borderColor: "#F44336",
-    backgroundColor: "#fef1f0",
   },
 });
