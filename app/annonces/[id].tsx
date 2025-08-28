@@ -19,12 +19,12 @@ export default function Page_Detail() {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
   const [listAppartments, setListAppartments] = useState<AnnonceType[]>([]);
-  const { fetchdataAll } = useAnnonce_Data();
+  const { fetchDataAdmin } = useAnnonce_Data();
   useEffect(() => {
     const loadData = async () => {
       setIsLoading(true);
       try {
-        const data = await fetchdataAll();
+        const data = await fetchDataAdmin();
         setListAppartments(data || []); // ✅ Gérer le cas où data est undefined
       } catch (error) {
         console.error("❌ Erreur lors du chargement:", error);
@@ -35,7 +35,7 @@ export default function Page_Detail() {
     };
 
     loadData();
-  }, [fetchdataAll]); // ✅ Ajouter fetchdataAll dans les dépendances
+  }, [fetchDataAdmin]); // ✅ Ajouter fetchdataAll dans les dépendances
 
   const Annonce_query: AnnonceType | undefined = listAppartments.find(
     (annonce) => annonce.id === id

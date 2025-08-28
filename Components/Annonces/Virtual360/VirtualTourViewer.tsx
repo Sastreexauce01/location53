@@ -168,6 +168,7 @@ export const VirtualTourViewer: React.FC<VirtualTourViewerProps> = ({
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    paddingTop:10,
     backgroundColor: "#E0DEF7", // light color en arrière-plan
   },
 
