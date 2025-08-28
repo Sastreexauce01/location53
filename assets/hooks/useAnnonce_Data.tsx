@@ -48,8 +48,9 @@ const useAnnonce_Data = () => {
   ); // ✅ dépendances vides
 
 
-  // ✅ Fonction simple pour récupérer 10 annonces
-  const fetchdataAll = useCallback(async () => {
+
+//  fonction pour recuperer toutes les anonnces peut importe son etat
+  const  fetchDataAdmin= useCallback(async () => {
     setIsLoadingAnnonces(true);
     try {
       const { data, error } = await supabase
@@ -99,6 +100,64 @@ const useAnnonce_Data = () => {
       setIsLoadingAnnonces(false);
     }
   }, [fetchVirtualSpaces]);
+
+
+  // ✅ Fonction simple pour récupérer 10 annonces
+  const fetchdataAll = useCallback(async () => {
+    setIsLoadingAnnonces(true);
+    try {
+      const { data, error } = await supabase
+        .from("annonces")
+        .select("*")
+        .eq("status",'approved')
+        .order("created_at", { ascending: false });
+
+      if (error) {
+        console.error("❌ Erreur lors de la récupération des annonces:", error);
+        throw error;
+      }
+
+      const mappedDataPromises =
+        data?.map(async (item: SupabaseAnnonce): Promise<AnnonceType> => {
+          const virtualSpaces = await fetchVirtualSpaces(item.id);
+
+          return {
+            id: item.id,
+            nomAnnonce: item.nom_annonce,
+            typeAnnonce: item.type_annonce,
+            categorie: item.categorie,
+            status:item.status,
+            description: item.description,
+            image: item.images || [],
+            adresse: item.adresse,
+            coordonnee: {
+              latitude: item.latitude,
+              longitude: item.longitude,
+            },
+            prix: item.prix,
+            nbre_chambre: item.nbre_chambre,
+            nbre_salle_bains: item.nbre_salle_bains,
+            accessibilite: item.accessibilite || [],
+            virtualSpace: virtualSpaces,
+            date_creation: item.created_at,
+            id_agent: item.id_agent,
+          };
+        }) || [];
+
+      const mappedData: AnnonceType[] = await Promise.all(mappedDataPromises);
+    
+      return mappedData;
+    } catch (error) {
+      console.error("❌ Erreur dans fetchdataAll:", error);
+      setListAppartments([]);
+    } finally {
+      setIsLoadingAnnonces(false);
+    }
+  }, [fetchVirtualSpaces]);
+
+
+
+
 
   // ✅ Mémoriser fetchData avec useCallback
   const fetchData = useCallback(async () => {
@@ -229,6 +288,7 @@ const useAnnonce_Data = () => {
   }, [fetchData]);
 
   return {
+    fetchDataAdmin,
     fetchdataAll,
     handleUpdate,
     handleDelete,

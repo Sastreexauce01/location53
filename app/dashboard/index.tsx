@@ -47,13 +47,13 @@ const PageAdmin = () => {
   const [listAppartments, setListAppartments] = useState<AnnonceType[]>([]);
   const [listAgents, setListAgents] = useState<AgentType[]>([]);
 
-  const { fetchdataAll } = useAnnonce_Data();
+  const { fetchDataAdmin } = useAnnonce_Data();
 
   useEffect(() => {
     const loadData = async () => {
       setIsLoading(true);
       try {
-        const data = await fetchdataAll();
+        const data = await fetchDataAdmin();
         setListAppartments(data || []);
       } catch (error) {
         console.error("❌ Erreur lors du chargement:", error);
@@ -64,7 +64,7 @@ const PageAdmin = () => {
     };
 
     loadData();
-  }, [fetchdataAll]);
+  }, [fetchDataAdmin]);
 
   // Charger les agents
   const fetchAgents = async () => {
@@ -156,7 +156,7 @@ const PageAdmin = () => {
         console.error(error);
       }
 
-      setListAppartments((await fetchdataAll()) || []);
+      setListAppartments((await fetchDataAdmin()) || []);
 
       Alert.alert(
         "Succès",

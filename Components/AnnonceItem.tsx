@@ -38,6 +38,32 @@ export const AnnonceItem = ({ item, onRefresh }: Props) => {
 
   const router = useRouter();
 
+  // Fonction pour obtenir la couleur du badge selon le statut
+  const getBadgeColor = (status: string) => {
+    switch (status) {
+      case "approved":
+        return "#4CAF50"; // Vert
+      case "rejected":
+        return "#F44336"; // Rouge
+      case "pending":
+      default:
+        return "#FF9800"; // Orange
+    }
+  };
+
+  // Fonction pour obtenir le texte du badge selon le statut
+  const getBadgeText = (status: string) => {
+    switch (status) {
+      case "approved":
+        return "Approuvée";
+      case "rejected":
+        return "Rejetée";
+      case "pending":
+      default:
+        return "En attente";
+    }
+  };
+
   const handleDeleteAnnonce = async () => {
     try {
       const success = await handleDelete(item.id);
@@ -61,7 +87,19 @@ export const AnnonceItem = ({ item, onRefresh }: Props) => {
           resizeMode="cover"
           onLoadEnd={() => setIsLoading(false)}
         >
-          <View style={styles.overlay}></View>
+          <View style={styles.overlay}>
+            {/* Badge de statut */}
+            <View
+              style={[
+                styles.statusBadge,
+                { backgroundColor: getBadgeColor(item.status) },
+              ]}
+            >
+              <Text style={styles.statusText}>
+                {getBadgeText(item.status)}
+              </Text>
+            </View>
+          </View>
         </ImageBackground>
       </View>
 
@@ -129,10 +167,28 @@ const styles = StyleSheet.create({
 
   overlay: {
     flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    paddingTop: 5,
-    paddingHorizontal: 2,
+    alignItems: "flex-start",
+    justifyContent: "flex-start",
+    paddingTop: 8,
+    paddingHorizontal: 8,
+  },
+
+  // Styles pour le badge de statut
+  statusBadge: {
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: 15,
+    elevation: 2,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.2,
+    shadowRadius: 1,
+  },
+
+  statusText: {
+    color: "white",
+    fontSize: 11,
+    fontWeight: "700",
   },
 
   tag: {
