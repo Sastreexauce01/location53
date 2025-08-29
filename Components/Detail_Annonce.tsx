@@ -26,7 +26,7 @@ const Detail_Annonce: React.FC<props> = ({ item }) => {
 
   const router = useRouter();
 
-  console.log("📲Phone",user?.user_metadata?.phone);
+  // console.log("📲Phone",user?.user_metadata?.phone);
 
   return (
     <View style={styles.container}>

@@ -15,6 +15,7 @@ import AppartementList from "@/Components/home/AppartementList";
 import DestinationList from "@/Components/home/DestinationList";
 import useAnnonce_Data from "@/assets/hooks/useAnnonce_Data";
 import Loading from "@/Components/Loading";
+import { AntDesign } from "@expo/vector-icons";
 
 export default function Index() {
   const { isLoadingAnnonces } = useAnnonce_Data();
@@ -37,7 +38,6 @@ export default function Index() {
           <Pressable
             style={styles.container_input}
             onPress={() => router.push("/(tabs)/recherche")}
-           
           >
             <EvilIcons name="location" size={24} color={Colors.dark} />
             <View style={styles.input}>
@@ -49,7 +49,11 @@ export default function Index() {
 
           {/* Section Appartement */}
           <View style={styles.container_Appartement}>
-            <Text style={styles.sectionTitle}>Quelques propriétés</Text>
+            <View style={styles.header}>
+              <Text style={styles.sectionTitle}>Quelques propriétés</Text>
+              <AntDesign name="arrowright" size={20} color="black" />
+            </View>
+
             <AppartementList />
             <View>
               <TouchableOpacity
@@ -65,9 +69,14 @@ export default function Index() {
 
           {/* Section Destinations populaires */}
           <View style={styles.container_Destination}>
-            <Text style={styles.sectionTitle}>
-              Quelques Destinations Populaires
-            </Text>
+            <View style={styles.header}>
+              <Text style={styles.sectionTitle}>
+                Quelques Destinations Populaires
+              </Text>
+
+              <AntDesign name="arrowright" size={20} color="black" />
+            </View>
+
             <DestinationList />
           </View>
         </View>
@@ -99,6 +108,12 @@ const styles = StyleSheet.create({
   input: {
     paddingHorizontal: 10,
     // backgroundColor: Colors.light,
+  },
+
+  header: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
   },
 
   scrollContainer: {

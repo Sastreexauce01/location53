@@ -6,7 +6,7 @@ import { useAnnonce } from "./useAnnonce";
 
 const useAnnonce_Data = () => {
   const [listAppartments, setListAppartments] = useState<AnnonceType[]>([]);
-
+  const [listAnnonces, setlisAnnonces] = useState<AnnonceType[]>([]);
   const { saveAnnonce } = useAnnonce();
   const [isLoadingAnnonces, setIsLoadingAnnonces] = useState(false);
   const { user, isAuthenticated } = useAuth();
@@ -21,7 +21,7 @@ const useAnnonce_Data = () => {
 
         if (error) throw error;
 
-        // console.log("✅ Données brutes virtualSpace:", data);
+        console.log("✅ Données brutes virtualSpace:", data);
 
         return data.map((item) => ({
           id: item.id,
@@ -47,10 +47,8 @@ const useAnnonce_Data = () => {
     []
   ); // ✅ dépendances vides
 
-
-
-//  fonction pour recuperer toutes les anonnces peut importe son etat
-  const  fetchDataAdmin= useCallback(async () => {
+  //  fonction pour recuperer toutes les anonnces peut importe son etat
+  const fetchDataAdmin = useCallback(async () => {
     setIsLoadingAnnonces(true);
     try {
       const { data, error } = await supabase
@@ -72,7 +70,7 @@ const useAnnonce_Data = () => {
             nomAnnonce: item.nom_annonce,
             typeAnnonce: item.type_annonce,
             categorie: item.categorie,
-            status:item.status,
+            status: item.status,
             description: item.description,
             image: item.images || [],
             adresse: item.adresse,
@@ -91,7 +89,7 @@ const useAnnonce_Data = () => {
         }) || [];
 
       const mappedData: AnnonceType[] = await Promise.all(mappedDataPromises);
-    
+      setListAppartments(mappedData);
       return mappedData;
     } catch (error) {
       console.error("❌ Erreur dans fetchdataAll:", error);
@@ -100,7 +98,6 @@ const useAnnonce_Data = () => {
       setIsLoadingAnnonces(false);
     }
   }, [fetchVirtualSpaces]);
-
 
   // ✅ Fonction simple pour récupérer 10 annonces
   const fetchdataAll = useCallback(async () => {
@@ -109,7 +106,7 @@ const useAnnonce_Data = () => {
       const { data, error } = await supabase
         .from("annonces")
         .select("*")
-        .eq("status",'approved')
+        .eq("status", "approved")
         .order("created_at", { ascending: false });
 
       if (error) {
@@ -126,7 +123,7 @@ const useAnnonce_Data = () => {
             nomAnnonce: item.nom_annonce,
             typeAnnonce: item.type_annonce,
             categorie: item.categorie,
-            status:item.status,
+            status: item.status,
             description: item.description,
             image: item.images || [],
             adresse: item.adresse,
@@ -145,21 +142,16 @@ const useAnnonce_Data = () => {
         }) || [];
 
       const mappedData: AnnonceType[] = await Promise.all(mappedDataPromises);
-    
       return mappedData;
     } catch (error) {
       console.error("❌ Erreur dans fetchdataAll:", error);
-      setListAppartments([]);
     } finally {
       setIsLoadingAnnonces(false);
     }
   }, [fetchVirtualSpaces]);
 
-
-
-
-
   // ✅ Mémoriser fetchData avec useCallback
+
   const fetchData = useCallback(async () => {
     // Ne pas charger si pas authentifié ou pas d'utilisateur
     if (!isAuthenticated || !user?.id) {
@@ -189,7 +181,7 @@ const useAnnonce_Data = () => {
             typeAnnonce: item.type_annonce,
             categorie: item.categorie,
             description: item.description,
-            status:item.status,
+            status: item.status,
             image: item.images || [],
             adresse: item.adresse,
             coordonnee: {
@@ -207,7 +199,8 @@ const useAnnonce_Data = () => {
         }) || [];
 
       const mappedData: AnnonceType[] = await Promise.all(mappedDataPromises);
-      setListAppartments(mappedData);
+      setlisAnnonces(mappedData);
+      return mappedData;
     } catch (error) {
       console.error("❌ Erreur dans fetchData:", error);
       setListAppartments([]);
@@ -216,13 +209,12 @@ const useAnnonce_Data = () => {
     }
   }, [fetchVirtualSpaces, isAuthenticated, user?.id]); // ✅ Dépendances correctes
 
-
-
   // ✅ Un seul useEffect, bien configuré
   useEffect(() => {
+    fetchDataAdmin();
     fetchdataAll();
-    fetchData()
-  }, [fetchData, fetchdataAll]);
+    fetchData();
+  }, [fetchData, fetchDataAdmin, fetchdataAll]);
 
   const handleUpdate = (idAnnonce: string) => {
     const annonceQuery: AnnonceType | undefined = listAppartments.find(
@@ -272,6 +264,10 @@ const useAnnonce_Data = () => {
         prev.filter((annonce) => annonce.id !== idAnnonce)
       );
 
+      await fetchData();
+      await fetchDataAdmin();
+      await fetchdataAll();
+
       return true;
     } catch (err) {
       console.error("Erreur inattendue:", err);
@@ -283,19 +279,21 @@ const useAnnonce_Data = () => {
   };
 
   // Fonction pour rafraîchir manuellement les données
-  const refreshData = useCallback(async () => {
-    await fetchData();
-  }, [fetchData]);
 
   return {
+    fetchData,
     fetchDataAdmin,
     fetchdataAll,
     handleUpdate,
     handleDelete,
     listAppartments,
     setListAppartments,
+
+    listAnnonces,
+    setlisAnnonces,
+
     isLoadingAnnonces,
-    refreshData, // Nouvelle fonction exportée
+    // refreshData, // Nouvelle fonction exportée
   };
 };
 

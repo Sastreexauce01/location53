@@ -4,7 +4,6 @@ import {
   ScrollView,
   TouchableOpacity,
   Text,
-
 } from "react-native";
 import { AnnonceItem } from "@/Components/AnnonceItem";
 import { useRouter } from "expo-router";
@@ -15,13 +14,28 @@ import useAnnonce_Data from "@/assets/hooks/useAnnonce_Data";
 import Loading from "@/Components/Loading";
 import NotAuthenticated from "@/Components/NotAuthenticated";
 
+
 export default function Annonces() {
   const router = useRouter();
   const { user, loading, isAuthenticated } = useAuth();
-  const { listAppartments, isLoadingAnnonces } = useAnnonce_Data();
 
+  const { isLoadingAnnonces,  listAnnonces,  } =
+    useAnnonce_Data();
 
-  
+  // useEffect(() => {
+  //   const loadData = async () => {
+  //     try {
+  //       const data = await fetchData();
+  //       console.log("✅data", data);
+  //       setlisAnnonces(data || []);
+  //     } catch (error) {
+  //       console.error("❌ Erreur lors du chargement:", error);
+  //       setlisAnnonces([]);
+  //     }
+  //   };
+  //   loadData();
+  // }, [fetchData, setlisAnnonces]);
+
   // Écran de chargement pour l'authentification
   if (loading) {
     return <Loading />;
@@ -29,7 +43,7 @@ export default function Annonces() {
 
   // Si pas authentifié, ne rien afficher
   if (!isAuthenticated || !user) {
-    return <NotAuthenticated/>;
+    return <NotAuthenticated />;
   }
 
   // Écran de chargement pour les annonces
@@ -46,7 +60,7 @@ export default function Annonces() {
       >
         <View style={styles.container_annonce}>
           {/* ✅ CORRECTION MAJEURE: utiliser listAppartments au lieu de Data_Appartements */}
-          {listAppartments.length === 0 ? (
+          {listAnnonces.length === 0 ? (
             <View style={styles.noAnnonceContainer}>
               <FontAwesome6 name="house" size={50} color={Colors.gray} />
               <Text style={styles.noAnnonceText}>Aucune annonce trouvée</Text>
@@ -55,7 +69,7 @@ export default function Annonces() {
               </Text>
             </View>
           ) : (
-            listAppartments.map((item) => (
+            listAnnonces.map((item) => (
               <TouchableOpacity
                 key={item.id}
                 style={styles.annonce}
@@ -66,7 +80,6 @@ export default function Annonces() {
             ))
           )}
         </View>
-        
       </ScrollView>
 
       {/* Button */}

@@ -111,7 +111,7 @@ const MapsResults: React.FC<MapsResultsProps> = ({
           ]}
         >
           <Text style={styles.markerText}>
-            {property.prix ? `${property.prix}€` : "?"}
+            {property.prix ? `${property.prix}F` : "?"}
           </Text>
         </View>
 
@@ -131,7 +131,7 @@ const MapsResults: React.FC<MapsResultsProps> = ({
                 {property.adresse}
               </Text>
               <Text style={styles.calloutPrice}>
-                {property.prix}f{" "}
+                {property.prix}F{" "}
                 {property.typeAnnonce === "location" ? "/mois" : ""}
               </Text>
               <View style={styles.propertyFeatures}>

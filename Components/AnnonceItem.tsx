@@ -64,6 +64,8 @@ export const AnnonceItem = ({ item, onRefresh }: Props) => {
     }
   };
 
+
+  
   const handleDeleteAnnonce = async () => {
     try {
       const success = await handleDelete(item.id);

@@ -125,7 +125,6 @@ const styles = StyleSheet.create({
     //backgroundColor: "orange",
     padding: 10,
     flexDirection: "column",
-
     gap: 10,
     justifyContent: "space-between",
   },
@@ -133,6 +132,7 @@ const styles = StyleSheet.create({
   container_adresse: {
     flexDirection: "row",
     alignItems: "center",
+    justifyContent: 'flex-start',
     // backgroundColor: "orange",
   },
 

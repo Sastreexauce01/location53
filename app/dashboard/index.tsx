@@ -1,9 +1,7 @@
 import useAnnonce_Data from "@/assets/hooks/useAnnonce_Data";
 import { AnnonceType } from "@/assets/Types/type";
-
 import { Colors } from "@/Components/Colors";
 import Loading from "@/Components/Loading";
-
 import { supabase } from "@/utils/supabase";
 import {
   FontAwesome6,
@@ -44,6 +42,7 @@ const PageAdmin = () => {
   const [selectedItem, setSelectedItem] = useState<
     AnnonceType | AgentType | null
   >(null);
+  
   const [listAppartments, setListAppartments] = useState<AnnonceType[]>([]);
   const [listAgents, setListAgents] = useState<AgentType[]>([]);
 
